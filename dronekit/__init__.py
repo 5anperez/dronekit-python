@@ -3201,7 +3201,10 @@ def connect(ip,
     if not vehicle_class:
         vehicle_class = Vehicle
 
-    handler = MAVConnection(ip, baud=baud, source_system=source_system, source_component=source_component, use_native=use_native)
+    handler = MAVConnection(
+        ip=ip, baud=baud, source_system=source_system, 
+        source_component=source_component, use_native=use_native
+    )
     vehicle = vehicle_class(handler)
 
     if status_printer:
