@@ -2,34 +2,27 @@
 """
 This is the API Reference for the DroneKit-Python API.
 
-The main API is the :py:class:`Vehicle` class.
-The code snippet below shows how to use :py:func:`connect` to obtain an instance of a connected vehicle:
+The main API is the :py:class:`Vehicle` class. The code snippet below shows how to use :py:func:`connect` to obtain an instance of a connected vehicle:
 
-.. code:: python
-
+```python
     from dronekit import connect
 
     # Connect to the Vehicle using "connection string" (in this case an address on network)
     vehicle = connect('127.0.0.1:14550', wait_ready=True)
+```
 
-:py:class:`Vehicle` provides access to vehicle *state* through python attributes
-(e.g. :py:attr:`Vehicle.mode`)
-and to settings/parameters though the :py:attr:`Vehicle.parameters` attribute.
-Asynchronous notification on vehicle attribute changes is available by registering listeners/observers.
+- :py:class:`Vehicle` provides access to the vehicle's state through python attributes (e.g. :py:attr:`Vehicle.mode`) and settings/parameters through the :py:attr:`Vehicle.parameters` attribute.
 
-Vehicle movement is primarily controlled using the :py:attr:`Vehicle.armed` attribute and
-:py:func:`Vehicle.simple_takeoff` and :py:attr:`Vehicle.simple_goto` in GUIDED mode.
+- Asynchronous notification on vehicle attribute changes is available by registering listeners/observers.
 
-Velocity-based movement and control over other vehicle features can be achieved using custom MAVLink messages
-(:py:func:`Vehicle.send_mavlink`, :py:func:`Vehicle.message_factory`).
+- Vehicle movement is primarily controlled using the :py:attr:`Vehicle.armed` attribute and
+then the :py:func:`Vehicle.simple_takeoff` method and/or the :py:attr:`Vehicle.simple_goto` method. Note that the vehicle must be in the `GUIDED` flight mode to use these methods.
 
-It is also possible to work with vehicle "missions" using the :py:attr:`Vehicle.commands` attribute, and run them in AUTO mode.
+- Velocity-based movement and control over other vehicle features can be achieved using custom MAVLink messages wrapped in methods such as :py:func:`Vehicle.send_mavlink` and/or :py:func:`Vehicle.message_factory`.
 
-All the logging is handled through the builtin Python `logging` module.
+- It is also possible to work with vehicle missions when in `AUTO` flight mode by using the :py:attr:`Vehicle.commands` attribute.
 
-A number of other useful classes and methods are listed below.
-
-----
+- All the logging is handled through the builtin Python `logging` module.
 """
 
 import sys
@@ -94,7 +87,7 @@ class Attitude(object):
         self.roll = roll
 
     def __str__(self):
-        fmt = '{}:pitch={pitch},yaw={yaw},roll={roll}'
+        fmt = '{}: pitch = {pitch}, yaw = {yaw}, roll = {roll}'
         return fmt.format(self.__class__.__name__, **vars(self))
 
 
@@ -167,7 +160,7 @@ class LocationGlobalRelative(object):
         self.global_frame = None
 
     def __str__(self):
-        return "LocationGlobalRelative:lat=%s,lon=%s,alt=%s" % (self.lat, self.lon, self.alt)
+        return f"LocationGlobalRelative: lat = {self.lat}, lon = {self.lon}, alt = {self.alt}"
 
 
 class LocationLocal(object):
@@ -729,10 +722,10 @@ class HasObservers(object):
 
 class ChannelsOverride(dict):
     """
-    A dictionary class for managing Vehicle channel overrides.
+    ### A dictionary class for managing Vehicle channel overrides.
 
     Channels can be read, written, or cleared by index or using a dictionary syntax.
-    To clear a value, set it to ``None`` or use ``del`` on the item.
+    To clear a value, set it to `None` or use `del` on the item.
 
     An object of this type is returned by :py:attr:`Vehicle.channels.overrides <Channels.overrides>`.
 
@@ -778,8 +771,7 @@ class Channels(dict):
     """
     A dictionary class for managing RC channel information associated with a :py:class:`Vehicle`.
 
-    An object of this type is accessed through :py:attr:`Vehicle.channels`. This object also stores
-    the current vehicle channel overrides through its :py:attr:`overrides` attribute.
+    An object of this type is accessed through the :py:attr:`Vehicle.channels` attribute. This object also stores the current vehicle channel overrides through its :py:attr:`overrides` attribute.
 
     For more information and examples see :ref:`example_channel_overrides`.
     """
@@ -833,8 +825,7 @@ class Channels(dict):
 
         To set channel overrides:
 
-        .. code:: python
-
+        ```python
             # Set and clear overrids using dictionary syntax (clear by setting override to none)
             vehicle.channels.overrides = {'5':None, '6':None,'3':500}
 
@@ -847,16 +838,17 @@ class Channels(dict):
 
             # Clear all overrides by setting an empty dictionary
             vehicle.channels.overrides = {}
+        ```
 
         Read the channel overrides either as a dictionary or by index. Note that you'll get
-        a ``KeyError`` exception if you read a channel override that has not been set.
+        a `KeyError` exception if you read a channel override that has not been set.
 
-        .. code:: python
-
+        ```python
             # Get all channel overrides
             print " Channel overrides: %s" % vehicle.channels.overrides
             # Print just one channel override
             print " Ch2 override: %s" % vehicle.channels.overrides['2']
+        ```
         """
         return self._overrides
 
@@ -996,11 +988,9 @@ class Locations(HasObservers):
 
 class Vehicle(HasObservers):
     """
-    The main vehicle API.
+    ### The main vehicle API.
 
-    Vehicle state is exposed through 'attributes' (e.g. :py:attr:`heading`). All attributes can be
-    read, and some are also settable
-    (:py:attr:`mode`, :py:attr:`armed` and :py:attr:`home_location`).
+    Vehicle state is exposed through 'attributes' (e.g. :py:attr:`heading`). All attributes can be read, and some are also settable (:py:attr:`mode`, :py:attr:`armed` and :py:attr:`home_location`).
 
     Attributes can also be asynchronously monitored for changes by registering listener callback
     functions.
@@ -1008,37 +998,28 @@ class Vehicle(HasObservers):
     Vehicle "settings" (parameters) are read/set using the :py:attr:`parameters` attribute.
     Parameters can be iterated and are also individually observable.
 
-    Vehicle movement is primarily controlled using the :py:attr:`armed` attribute and
-    :py:func:`simple_takeoff` and :py:func:`simple_goto` in GUIDED mode.
+    Vehicle movement is primarily controlled using the :py:attr:`armed` attribute and the :py:func:`simple_takeoff` and :py:func:`simple_goto` methods in `GUIDED` mode.
 
-    It is also possible to work with vehicle "missions" using the :py:attr:`commands` attribute,
-    and run them in AUTO mode.
+    It is also possible to work with vehicle "missions" using the :py:attr:`commands` attribute, and run them in `AUTO` mode.
 
-    STATUSTEXT log messages from the autopilot are handled through a separate logger.
-    It is possible to configure the log level, the formatting, etc. by accessing the logger, e.g.:
+    STATUSTEXT log messages from the autopilot are handled through a separate logger. It is possible to configure the log level, the formatting, etc. by accessing the logger, e.g.:
 
-    .. code-block:: python
-
+    ```python
         import logging
         autopilot_logger = logging.getLogger('autopilot')
         autopilot_logger.setLevel(logging.DEBUG)
+    ```
 
-    The guide contains more detailed information on the different ways you can use
-    the ``Vehicle`` class:
+    The guide contains more detailed information on the different ways you can use the `Vehicle` class:
 
     - :doc:`guide/vehicle_state_and_parameters`
     - :doc:`guide/copter/guided_mode`
     - :doc:`guide/auto_mode`
 
 
-    .. note::
-
-        This class currently exposes just the attributes that are most commonly used by all
-        vehicle types. if you need to add additional attributes then subclass ``Vehicle``
-        as demonstrated in :doc:`examples/create_attribute`.
-
-        Please then :doc:`contribute <contributing/contributions_api>` your additions back
-        to the project!
+    #### NOTE:
+        This class currently exposes just the attributes that are most commonly used by all vehicle types. If you need to add additional attributes then subclass `Vehicle` as demonstrated in :doc:`examples/create_attribute`. 
+        ∴ please then :doc:`contribute <contributing/contributions_api>` your additions back to the project!
     """
 
     def __init__(self, handler):
@@ -2364,34 +2345,44 @@ class Vehicle(HasObservers):
 
     def wait_ready(self, *types, **kwargs):
         """
-        Waits for specified attributes to be populated from the vehicle (values are initially ``None``).
+        Waits for specified attributes to be populated from the vehicle (values are initially `None`).
 
-        This is typically called "behind the scenes" to ensure that :py:func:`connect` does not return until
-        attributes have populated (via the ``wait_ready`` parameter). You can also use it after connecting to
-        wait on a specific value(s).
+        This is typically called behind-the-scenes to ensure that :py:func:`connect` does not return until attributes have populated (via the `wait_ready` parameter). 
+        
+        You can also use it after connecting to wait on a specific value(s).
 
         There are two ways to call the method:
-
-        .. code-block:: python
-
-            #Wait on default attributes to populate
+        
+        ```python
+            # 1. Wait on default attributes to populate
             vehicle.wait_ready(True)
 
-            #Wait on specified attributes (or array of attributes) to populate
+            # 2. Wait on specified attributes (or array of attributes) to populate
             vehicle.wait_ready('mode','airspeed')
+        ```
+        
+        ---
 
-        Using the ``wait_ready(True)`` waits on :py:attr:`parameters`, :py:attr:`gps_0`,
-        :py:attr:`armed`, :py:attr:`mode`, and :py:attr:`attitude`. In practice this usually
-        means that all supported attributes will be populated.
+        These are the default attributes:
+        
+        1. :py:attr:`parameters`, 
+        2. :py:attr:`gps_0`, 
+        3. :py:attr:`armed`,
+        4. :py:attr:`mode`, 
+        5. :py:attr:`attitude`.
+        
+        --- 
+        
+        In practice this usually means that all supported attributes will be populated.
 
         By default, the method will timeout after 30 seconds and raise an exception if the
         attributes were not populated.
 
-        :param types: ``True`` to wait on the default set of attributes, or a
+        - param types: ``True`` to wait on the default set of attributes, or a
             comma-separated list of the specific attributes to wait on.
-        :param int timeout: Timeout in seconds after which the method will raise an exception
+        - param int timeout: Timeout in seconds after which the method will raise an exception
             (the default) or return ``False``. The default timeout is 30 seconds.
-        :param Boolean raise_exception: If ``True`` the method will raise an exception on timeout,
+        - param Boolean raise_exception: If ``True`` the method will raise an exception on timeout,
             otherwise the method will return ``False``. The default is ``True`` (raise exception).
         """
         timeout = kwargs.get('timeout', 30)
