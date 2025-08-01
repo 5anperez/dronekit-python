@@ -469,25 +469,24 @@ class Capabilities:
 
 class VehicleMode(object):
     """
-    This object is used to get and set the current "flight mode".
+    ### This object is used to get and set the current "flight mode".
 
     The flight mode determines the behaviour of the vehicle and what commands it can obey.
-    The recommended flight modes for *DroneKit-Python* apps depend on the vehicle type:
+    The recommended flight modes for DroneKit-Python apps depend on the vehicle type:
 
-    * Copter apps should use ``AUTO`` mode for "normal" waypoint missions and ``GUIDED`` mode otherwise.
-    * Plane and Rover apps should use the ``AUTO`` mode in all cases, re-writing the mission commands if "dynamic"
-      behaviour is required (they support only a limited subset of commands in ``GUIDED`` mode).
-    * Some modes like ``RETURN_TO_LAUNCH`` can be used on all platforms. Care should be taken
-      when using manual modes as these may require remote control input from the user.
+    * Copter apps should use `AUTO` mode for "normal" waypoint missions and `GUIDED` mode otherwise.
+    * Plane and Rover apps should use the `AUTO` mode in all cases, re-writing the mission commands if "dynamic" behaviour is required (they support only a limited subset of commands in `GUIDED` mode).
+    * Some modes like `RETURN_TO_LAUNCH` can be used on all platforms. Care should be taken when using manual modes as these may require remote control input from the user.
 
     The available set of supported flight modes is vehicle-specific (see
-    `Copter Modes <http://copter.ardupilot.com/wiki/flying-arducopter/flight-modes/>`_,
-    `Plane Modes <http://plane.ardupilot.com/wiki/flying/flight-modes/>`_,
-    `Rover Modes <http://rover.ardupilot.com/wiki/configuration-2/#mode_meanings>`_). If an unsupported mode is set the script
-    will raise a ``KeyError`` exception.
+    `Copter Modes <http://copter.ardupilot.com/wiki/flying-arducopter/flight-modes/>`,
+    `Plane Modes <http://plane.ardupilot.com/wiki/flying/flight-modes/>`,
+    `Rover Modes <http://rover.ardupilot.com/wiki/configuration-2/#mode_meanings>`). 
+    
+    If an unsupported mode is set the script will raise a `KeyError` exception.
 
     The :py:attr:`Vehicle.mode` attribute can be queried for the current mode.
-    The code snippet below shows how to observe changes to the mode and then read the value:
+    The code snippet below shows how to observe changes to the mode and then read the value.
 
     .. code:: python
 
