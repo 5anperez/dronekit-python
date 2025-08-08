@@ -1,8 +1,7 @@
-# DroneAPI module
 """
-This is the API Reference for the DroneKit-Python API.
+### This is the API Reference for the DroneKit-Python API.
 
-The main API is the :py:class:`Vehicle` class. The code snippet below shows how to use :py:func:`connect` to obtain an instance of a connected vehicle:
+The main API is the `Vehicle` class. The code snippet below shows how to use `connect` to obtain an instance of a connected vehicle:
 
 ```python
     from dronekit import connect
@@ -11,16 +10,16 @@ The main API is the :py:class:`Vehicle` class. The code snippet below shows how 
     vehicle = connect('127.0.0.1:14550', wait_ready=True)
 ```
 
-- :py:class:`Vehicle` provides access to the vehicle's state through python attributes (e.g. :py:attr:`Vehicle.mode`) and settings/parameters through the :py:attr:`Vehicle.parameters` attribute.
+- `Vehicle` provides access to the vehicle's state through Python attributes (e.g. `Vehicle.mode`) and settings/parameters through the `Vehicle.parameters` attribute.
 
 - Asynchronous notification on vehicle attribute changes is available by registering listeners/observers.
 
-- Vehicle movement is primarily controlled using the :py:attr:`Vehicle.armed` attribute and
-then the :py:func:`Vehicle.simple_takeoff` method and/or the :py:attr:`Vehicle.simple_goto` method. Note that the vehicle must be in the `GUIDED` flight mode to use these methods.
+- Vehicle movement is primarily controlled using the `Vehicle.armed` attribute and
+then the `Vehicle.simple_takeoff` method and/or the `Vehicle.simple_goto` method. Note that the vehicle must be in the `GUIDED` flight mode to use these methods.
 
-- Velocity-based movement and control over other vehicle features can be achieved using custom MAVLink messages wrapped in methods such as :py:func:`Vehicle.send_mavlink` and/or :py:func:`Vehicle.message_factory`.
+- Velocity-based movement and control over other vehicle features can be achieved using custom MAVLink messages wrapped in methods such as `Vehicle.send_mavlink` and/or `Vehicle.message_factory`.
 
-- It is also possible to work with vehicle missions when in `AUTO` flight mode by using the :py:attr:`Vehicle.commands` attribute.
+- It is also possible to work with vehicle missions when in `AUTO` flight mode by using the `Vehicle.commands` attribute.
 
 - All the logging is handled through the builtin Python `logging` module.
 """
@@ -48,316 +47,1013 @@ from pymavlink.dialects.v10 import ardupilotmega
 
 from dronekit.util import ErrprinterHandler
 
+# NEW IMPORTS
+from typing import Optional, List, Dict, Union, Tuple, Callable, Any, Set
+from dataclasses import dataclass, field
 
+
+# class APIException(Exception):
+#     """
+#     Base class for DroneKit related exceptions.
+
+#     :param String message: Message string describing the exception
+#     """
+
+
+# class TimeoutError(APIException):
+#     '''Raised by operations that have timeouts.'''
+
+
+# class Attitude(object):
+#     """ OLD
+#     Attitude information.
+
+#     An object of this type is returned by :py:attr:`Vehicle.attitude`.
+
+#     .. _figure_attitude:
+
+#     .. figure:: http://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Yaw_Axis_Corrected.svg/500px-Yaw_Axis_Corrected.svg.png
+#         :width: 400px
+#         :alt: Diagram showing Pitch, Roll, Yaw
+#         :target: http://commons.wikimedia.org/wiki/File:Yaw_Axis_Corrected.svg
+
+#         Diagram showing Pitch, Roll, Yaw (`Creative Commons <http://commons.wikimedia.org/wiki/File:Yaw_Axis_Corrected.svg>`_)
+
+#     :param pitch: Pitch in radians
+#     :param yaw: Yaw in radians
+#     :param roll: Roll in radians
+#     """
+
+#     """ NEW
+#     ### Attitude information.
+
+#     An object of this type is returned by `Vehicle.attitude`.
+
+#     ---
+
+#     The `Attitude` object has the following attributes:
+    
+#     1. `pitch`: Pitch in radians, 
+#     2. `yaw`: Yaw in radians, 
+#     3. `roll`: Roll in radians.
+    
+#     --- 
+#     """
+
+#     def __init__(self, pitch, yaw, roll):
+#         self.pitch = pitch
+#         self.yaw = yaw
+#         self.roll = roll
+
+#     def __str__(self):
+#         fmt = '{}: pitch = {pitch}, yaw = {yaw}, roll = {roll}'
+#         return fmt.format(self.__class__.__name__, **vars(self))
+
+
+# class LocationGlobal(object):
+#     """
+#     A global location object.
+
+#     The latitude and longitude are relative to the `WGS84 coordinate system <http://en.wikipedia.org/wiki/World_Geodetic_System>`_.
+#     The altitude is relative to mean sea-level (MSL).
+
+#     For example, a global location object with altitude 30 metres above sea level might be defined as:
+
+#     .. code:: python
+
+#        LocationGlobal(-34.364114, 149.166022, 30)
+
+#     .. todo:: FIXME: Location class - possibly add a vector3 representation.
+
+#     An object of this type is owned by :py:attr:`Vehicle.location`. See that class for information on
+#     reading and observing location in the global frame.
+
+#     :param lat: Latitude.
+#     :param lon: Longitude.
+#     :param alt: Altitude in meters relative to mean sea-level (MSL).
+#     """
+
+#     def __init__(self, lat, lon, alt=None):
+#         self.lat = lat
+#         self.lon = lon
+#         self.alt = alt
+
+#         # This is for backward compatibility.
+#         self.local_frame = None
+#         self.global_frame = None
+
+#     def __str__(self):
+#         return "LocationGlobal:lat=%s,lon=%s,alt=%s" % (self.lat, self.lon, self.alt)
+
+
+# class LocationGlobalRelative(object):
+#     """
+#     A global location object, with attitude relative to home location altitude.
+
+#     The latitude and longitude are relative to the `WGS84 coordinate system <http://en.wikipedia.org/wiki/World_Geodetic_System>`_.
+#     The altitude is relative to the *home position*.
+
+#     For example, a ``LocationGlobalRelative`` object with an altitude of 30 metres above the home location might be defined as:
+
+#     .. code:: python
+
+#        LocationGlobalRelative(-34.364114, 149.166022, 30)
+
+#     .. todo:: FIXME: Location class - possibly add a vector3 representation.
+
+#     An object of this type is owned by :py:attr:`Vehicle.location`. See that class for information on
+#     reading and observing location in the global-relative frame.
+
+#     :param lat: Latitude.
+#     :param lon: Longitude.
+#     :param alt: Altitude in meters (relative to the home location).
+#     """
+
+#     def __init__(self, lat, lon, alt=None):
+#         self.lat = lat
+#         self.lon = lon
+#         self.alt = alt
+
+#         # This is for backward compatibility.
+#         self.local_frame = None
+#         self.global_frame = None
+
+#     def __str__(self):
+#         return f"LocationGlobalRelative: lat = {self.lat}, lon = {self.lon}, alt = {self.alt}"
+
+
+# class LocationLocal(object):
+#     """
+#     A local location object.
+
+#     The north, east and down are relative to the EKF origin.  This is most likely the location where the vehicle was turned on.
+
+#     An object of this type is owned by :py:attr:`Vehicle.location`. See that class for information on
+#     reading and observing location in the local frame.
+
+#     :param north: Position north of the EKF origin in meters.
+#     :param east: Position east of the EKF origin in meters.
+#     :param down: Position down from the EKF origin in meters. (i.e. negative altitude in meters)
+#     """
+
+#     def __init__(self, north, east, down):
+#         self.north = north
+#         self.east = east
+#         self.down = down
+
+#     def __str__(self):
+#         return "LocationLocal:north=%s,east=%s,down=%s" % (self.north, self.east, self.down)
+
+#     def distance_home(self):
+#         """
+#         Distance away from home, in meters. Returns 3D distance if `down` is known, otherwise 2D distance.
+#         """
+
+#         if self.north is not None and self.east is not None:
+#             if self.down is not None:
+#                 return math.sqrt(self.north**2 + self.east**2 + self.down**2)
+#             else:
+#                 return math.sqrt(self.north**2 + self.east**2)
+
+
+# class GPSInfo(object):
+#     """
+#     Standard information about GPS.
+
+#     If there is no GPS lock the parameters are set to ``None``.
+
+#     :param Int eph: GPS horizontal dilution of position (HDOP).
+#     :param Int epv: GPS vertical dilution of position (VDOP).
+#     :param Int fix_type: 0-1: no fix, 2: 2D fix, 3: 3D fix
+#     :param Int satellites_visible: Number of satellites visible.
+
+#     .. todo:: FIXME: GPSInfo class - possibly normalize eph/epv?  report fix type as string?
+#     """
+
+#     def __init__(self, eph, epv, fix_type, satellites_visible):
+#         self.eph = eph
+#         self.epv = epv
+#         self.fix_type = fix_type
+#         self.satellites_visible = satellites_visible
+
+#     def __str__(self):
+#         return "GPSInfo:fix=%s,num_sat=%s" % (self.fix_type, self.satellites_visible)
+
+
+# class Wind(object):
+#     """
+#     Wind information
+
+#     An object of this type is returned by :py:attr: `Vehicle.wind`.
+
+#     :param wind_direction: Wind direction in degrees
+#     :param wind_speed: Wind speed in m/s
+#     :param wind_speed_z: vertical wind speed in m/s
+#     """
+#     def __init__(self, wind_direction, wind_speed, wind_speed_z):
+#         self.wind_direction = wind_direction
+#         self.wind_speed = wind_speed
+#         self.wind_speed_z = wind_speed_z
+    
+#     def __str__(self):
+#         return "Wind: wind direction: {}, wind speed: {}, wind speed z: {}".format(self.wind_direction, self.wind_speed, self.wind_speed_z)
+
+
+# class Battery(object):
+#     """
+#     System battery information.
+
+#     An object of this type is returned by :py:attr:`Vehicle.battery`.
+
+#     :param voltage: Battery voltage in millivolts.
+#     :param current: Battery current, in 10 * milliamperes. ``None`` if the autopilot does not support current measurement.
+#     :param level: Remaining battery energy. ``None`` if the autopilot cannot estimate the remaining battery.
+#     """
+
+#     def __init__(self, voltage, current, level):
+#         self.voltage = voltage / 1000.0
+#         if current == -1:
+#             self.current = None
+#         else:
+#             self.current = current / 100.0
+#         if level == -1:
+#             self.level = None
+#         else:
+#             self.level = level
+
+#     def __str__(self):
+#         return "Battery:voltage={},current={},level={}".format(self.voltage, self.current,
+#                                                                self.level)
+
+
+# class Rangefinder(object):
+#     """
+#     Rangefinder readings.
+
+#     An object of this type is returned by :py:attr:`Vehicle.rangefinder`.
+
+#     :param distance: Distance (metres). ``None`` if the vehicle doesn't have a rangefinder.
+#     :param voltage: Voltage (volts). ``None`` if the vehicle doesn't have a rangefinder.
+#     """
+
+#     def __init__(self, distance, voltage):
+#         self.distance = distance
+#         self.voltage = voltage
+
+#     def __str__(self):
+#         return "Rangefinder: distance={}, voltage={}".format(self.distance, self.voltage)
+
+
+# class Version(object):
+#     """
+#     Autopilot version and type.
+
+#     An object of this type is returned by :py:attr:`Vehicle.version`.
+
+#     The version number can be read in a few different formats. To get it in a human-readable
+#     format, just print `vehicle.version`.  This might print something like "APM:Copter-3.3.2-rc4".
+
+#     .. versionadded:: 2.0.3
+
+#     .. py:attribute:: major
+
+#         Major version number (integer).
+
+#     .. py:attribute::minor
+
+#         Minor version number (integer).
+
+#     .. py:attribute:: patch
+
+#         Patch version number (integer).
+
+#     .. py:attribute:: release
+
+#         Release type (integer). See the enum `FIRMWARE_VERSION_TYPE <http://mavlink.org/messages/common#http://mavlink.org/messages/common#FIRMWARE_VERSION_TYPE_DEV>`_.
+
+#         This is a composite of the product release cycle stage (rc, beta etc) and the version in that cycle - e.g. 23.
+
+#     """
+#     def __init__(self, raw_version, autopilot_type, vehicle_type):
+#         self.autopilot_type = autopilot_type
+#         self.vehicle_type = vehicle_type
+#         self.raw_version = raw_version
+#         if raw_version is None:
+#             self.major = None
+#             self.minor = None
+#             self.patch = None
+#             self.release = None
+#         else:
+#             self.major   = raw_version >> 24 & 0xFF
+#             self.minor   = raw_version >> 16 & 0xFF
+#             self.patch   = raw_version >> 8  & 0xFF
+#             self.release = raw_version & 0xFF
+
+#     def is_stable(self):
+#         """
+#         Returns True if the autopilot reports that the current firmware is a stable
+#         release (not a pre-release or development version).
+#         """
+#         return self.release == 255
+
+#     def release_version(self):
+#         """
+#         Returns the version within the release type (an integer).
+#         This method returns "23" for Copter-3.3rc23.
+#         """
+#         if self.release is None:
+#             return None
+#         if self.release == 255:
+#             return 0
+#         return self.release % 64
+
+#     def release_type(self):
+#         """
+#         Returns text describing the release type e.g. "alpha", "stable" etc.
+#         """
+#         if self.release is None:
+#             return None
+#         types = ["dev", "alpha", "beta", "rc"]
+#         return types[self.release >> 6]
+
+#     def __str__(self):
+#         prefix = ""
+
+#         if self.autopilot_type == mavutil.mavlink.MAV_AUTOPILOT_ARDUPILOTMEGA:
+#             prefix += "APM:"
+#         elif self.autopilot_type == mavutil.mavlink.MAV_AUTOPILOT_PX4:
+#             prefix += "PX4"
+#         else:
+#             prefix += "UnknownAutoPilot"
+
+#         if self.vehicle_type == mavutil.mavlink.MAV_TYPE_QUADROTOR:
+#             prefix += "Copter-"
+#         elif self.vehicle_type == mavutil.mavlink.MAV_TYPE_FIXED_WING:
+#             prefix += "Plane-"
+#         elif self.vehicle_type == mavutil.mavlink.MAV_TYPE_GROUND_ROVER:
+#             prefix += "Rover-"
+#         else:
+#             prefix += "UnknownVehicleType%d-" % self.vehicle_type
+
+#         if self.release_type() is None:
+#             release_type = "UnknownReleaseType"
+#         elif self.is_stable():
+#             release_type = ""
+#         else:
+#             # e.g. "-rc23"
+#             release_type = "-" + str(self.release_type()) + str(self.release_version())
+
+#         return prefix + "%s.%s.%s" % (self.major, self.minor, self.patch) + release_type
+
+
+# class Capabilities:
+#     """
+#     Autopilot capabilities (supported message types and functionality).
+
+#     An object of this type is returned by :py:attr:`Vehicle.capabilities`.
+
+#     See the enum
+#     `MAV_PROTOCOL_CAPABILITY <http://mavlink.org/messages/common#MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT>`_.
+
+#     .. versionadded:: 2.0.3
+
+
+#     .. py:attribute:: mission_float
+
+#         Autopilot supports MISSION float message type (Boolean).
+
+#     .. py:attribute:: param_float
+
+#         Autopilot supports the PARAM float message type (Boolean).
+
+#     .. py:attribute:: mission_int
+
+#         Autopilot supports MISSION_INT scaled integer message type (Boolean).
+
+#     .. py:attribute:: command_int
+
+#         Autopilot supports COMMAND_INT scaled integer message type (Boolean).
+
+#     .. py:attribute:: param_union
+
+#         Autopilot supports the PARAM_UNION message type (Boolean).
+
+#     .. py:attribute:: ftp
+
+#         Autopilot supports ftp for file transfers (Boolean).
+
+#     .. py:attribute:: set_attitude_target
+
+#         Autopilot supports commanding attitude offboard (Boolean).
+
+#     .. py:attribute:: set_attitude_target_local_ned
+
+#         Autopilot supports commanding position and velocity targets in local NED frame (Boolean).
+
+#     .. py:attribute:: set_altitude_target_global_int
+
+#         Autopilot supports commanding position and velocity targets in global scaled integers (Boolean).
+
+#     .. py:attribute:: terrain
+
+#         Autopilot supports terrain protocol / data handling (Boolean).
+
+#     .. py:attribute:: set_actuator_target
+
+#         Autopilot supports direct actuator control (Boolean).
+
+#     .. py:attribute:: flight_termination
+
+#         Autopilot supports the flight termination command (Boolean).
+
+#     .. py:attribute:: compass_calibration
+
+#         Autopilot supports onboard compass calibration (Boolean).
+#     """
+#     def __init__(self, capabilities):
+#         self.mission_float                  = (((capabilities >> 0)  & 1) == 1)
+#         self.param_float                    = (((capabilities >> 1)  & 1) == 1)
+#         self.mission_int                    = (((capabilities >> 2)  & 1) == 1)
+#         self.command_int                    = (((capabilities >> 3)  & 1) == 1)
+#         self.param_union                    = (((capabilities >> 4)  & 1) == 1)
+#         self.ftp                            = (((capabilities >> 5)  & 1) == 1)
+#         self.set_attitude_target            = (((capabilities >> 6)  & 1) == 1)
+#         self.set_attitude_target_local_ned  = (((capabilities >> 7)  & 1) == 1)
+#         self.set_altitude_target_global_int = (((capabilities >> 8)  & 1) == 1)
+#         self.terrain                        = (((capabilities >> 9)  & 1) == 1)
+#         self.set_actuator_target            = (((capabilities >> 10) & 1) == 1)
+#         self.flight_termination             = (((capabilities >> 11) & 1) == 1)
+#         self.compass_calibration            = (((capabilities >> 12) & 1) == 1)
+
+
+# class VehicleMode(object):
+#     """ OLD
+#     This object is used to get and set the current "flight mode".
+
+#     The flight mode determines the behaviour of the vehicle and what commands it can obey.
+#     The recommended flight modes for *DroneKit-Python* apps depend on the vehicle type:
+
+#     * Copter apps should use ``AUTO`` mode for "normal" waypoint missions and ``GUIDED`` mode otherwise.
+#     * Plane and Rover apps should use the ``AUTO`` mode in all cases, re-writing the mission commands if "dynamic"
+#       behaviour is required (they support only a limited subset of commands in ``GUIDED`` mode).
+#     * Some modes like ``RETURN_TO_LAUNCH`` can be used on all platforms. Care should be taken
+#       when using manual modes as these may require remote control input from the user.
+
+#     The available set of supported flight modes is vehicle-specific (see
+#     `Copter Modes <http://copter.ardupilot.com/wiki/flying-arducopter/flight-modes/>`_,
+#     `Plane Modes <http://plane.ardupilot.com/wiki/flying/flight-modes/>`_,
+#     `Rover Modes <http://rover.ardupilot.com/wiki/configuration-2/#mode_meanings>`_). If an unsupported mode is set the script
+#     will raise a ``KeyError`` exception.
+
+#     The :py:attr:`Vehicle.mode` attribute can be queried for the current mode.
+#     The code snippet below shows how to observe changes to the mode and then read the value:
+
+#     .. code:: python
+
+#         #Callback definition for mode observer
+#         def mode_callback(self, attr_name):
+#             print "Vehicle Mode", self.mode
+
+#         #Add observer callback for attribute `mode`
+#         vehicle.add_attribute_listener('mode', mode_callback)
+
+#     The code snippet below shows how to change the vehicle mode to AUTO:
+
+#     .. code:: python
+
+#         # Set the vehicle into auto mode
+#         vehicle.mode = VehicleMode("AUTO")
+
+#     For more information on getting/setting/observing the :py:attr:`Vehicle.mode`
+#     (and other attributes) see the :ref:`attributes guide <vehicle_state_attributes>`.
+
+#     .. py:attribute:: name
+
+#         The mode name, as a ``string``.
+#     """
+    
+#     """ NEW
+#     ### This object is used to get and set the current "flight mode".
+
+#     The flight mode determines the behaviour of the vehicle and what commands it can obey.
+#     The recommended flight modes for DroneKit-Python apps depend on the vehicle type:
+
+#     - Copter apps should use `AUTO` mode for "normal" waypoint missions and `GUIDED` mode otherwise.
+#     - Plane and Rover apps should use the `AUTO` mode in all cases, re-writing the mission commands if "dynamic" behaviour is required (they support only a limited subset of commands in `GUIDED` mode).
+#     - Some modes like `RETURN_TO_LAUNCH` can be used on all platforms. Care should be taken when using manual modes as these may require remote control input from the user.
+
+#     The available set of supported flight modes is vehicle-specific see:
+#     - `Copter Modes <http://copter.ardupilot.com/wiki/flying-arducopter/flight-modes/>`,
+#     - `Plane Modes <http://plane.ardupilot.com/wiki/flying/flight-modes/>`,
+#     - `Rover Modes <http://rover.ardupilot.com/wiki/configuration-2/#mode_meanings>`. 
+    
+#     If an unsupported mode is set the script will raise a `KeyError` exception.
+
+#     The `Vehicle.mode` attribute can be queried for the current mode.
+#     The code snippet below shows how to observe changes to the mode and then read the value.
+
+#     ```python
+#         #Callback definition for mode observer
+#         def mode_callback(self, attr_name):
+#             print("Vehicle Mode", self.mode)
+
+#         #Add observer callback for attribute `mode`
+#         vehicle.add_attribute_listener('mode', mode_callback)
+#     ```
+
+#     The code snippet below shows how to change the vehicle mode to `AUTO`:
+
+#     ```python
+#         # Set the vehicle into auto mode
+#         vehicle.mode = VehicleMode("AUTO")
+#     ```
+
+#     For more information on getting/setting/observing the `Vehicle.mode` (and other attributes) see the `attributes guide <vehicle_state_attributes>`.
+
+#     The `Vehicle.mode.name` attribute can be queried for the current mode name, as a `string`.
+
+#     NOTE: MAKE SURE YOU TEST BOTH THE OLD AND NEW EQUALS OPERATORS! CHECK OUT THE TESTS SUGGESTED BY THE MODEL IN YOUR NOTES FILE.
+#     """
+
+#     def __init__(self, name):
+#         self.name = name
+
+#     def __str__(self):
+#         return "VehicleMode:%s" % self.name
+
+#     def __eq__(self, other):
+#         return self.name == other
+
+#     def __ne__(self, other):
+#         return self.name != other
+
+
+# class SystemStatus(object):
+#     """
+#     This object is used to get and set the current "system status".
+
+#     An object of this type is returned by :py:attr:`Vehicle.system_status`.
+
+#     .. py:attribute:: state
+
+#         The system state, as a ``string``.
+#     """
+
+#     def __init__(self, state):
+#         self.state = state
+
+#     def __str__(self):
+#         return "SystemStatus:%s" % self.state
+
+#     def __eq__(self, other):
+#         return self.state == other
+
+#     def __ne__(self, other):
+#         return self.state != other
+
+
+
+
+
+
+# NEW:
 class APIException(Exception):
     """
-    Base class for DroneKit related exceptions.
+    ### Base class for DroneKit related exceptions.
 
-    :param String message: Message string describing the exception
+    ---
+
+    Args:
+        `message`: A string describing the exception.
+
+    ---
     """
+    pass
+# APIException 
+
 
 
 class TimeoutError(APIException):
-    '''Raised by operations that have timeouts.'''
-
-
-class Attitude(object):
     """
-    Attitude information.
-
-    An object of this type is returned by :py:attr:`Vehicle.attitude`.
-
-    .. _figure_attitude:
-
-    .. figure:: http://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Yaw_Axis_Corrected.svg/500px-Yaw_Axis_Corrected.svg.png
-        :width: 400px
-        :alt: Diagram showing Pitch, Roll, Yaw
-        :target: http://commons.wikimedia.org/wiki/File:Yaw_Axis_Corrected.svg
-
-        Diagram showing Pitch, Roll, Yaw (`Creative Commons <http://commons.wikimedia.org/wiki/File:Yaw_Axis_Corrected.svg>`_)
-
-    :param pitch: Pitch in radians
-    :param yaw: Yaw in radians
-    :param roll: Roll in radians
+    ### Raised by operations that have timeouts.
     """
-
-    def __init__(self, pitch, yaw, roll):
-        self.pitch = pitch
-        self.yaw = yaw
-        self.roll = roll
-
-    def __str__(self):
-        fmt = '{}: pitch = {pitch}, yaw = {yaw}, roll = {roll}'
-        return fmt.format(self.__class__.__name__, **vars(self))
+    pass
+# TimeoutError
 
 
-class LocationGlobal(object):
+
+@dataclass
+class Attitude:
     """
-    A global location object.
+    ### Vehicle attitude information.
 
-    The latitude and longitude are relative to the `WGS84 coordinate system <http://en.wikipedia.org/wiki/World_Geodetic_System>`_.
+    An object of this type is returned by `Vehicle.attitude`.
+
+    ---
+
+    The `Attitude` object has the following attributes:
+    
+    1. `pitch`: Pitch in radians 
+    2. `yaw`: Yaw in radians
+    3. `roll`: Roll in radians
+    
+    ---
+    """
+    pitch: float
+    yaw: float
+    roll: float
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: pitch = {self.pitch:.4f}, yaw = {self.yaw:.4f}, roll = {self.roll:.4f}"
+    # __str__
+# Attitude
+
+
+
+@dataclass
+class LocationGlobal:
+    """
+    ### A global location object.
+
+    The latitude and longitude are relative to the `WGS84 coordinate system`.
     The altitude is relative to mean sea-level (MSL).
 
-    For example, a global location object with altitude 30 metres above sea level might be defined as:
+    Example:
+    ```python
+    # A global location object with altitude 30 metres above sea level
+    location = LocationGlobal(-34.364114, 149.166022, 30)
+    ```
 
-    .. code:: python
-
-       LocationGlobal(-34.364114, 149.166022, 30)
-
-    .. todo:: FIXME: Location class - possibly add a vector3 representation.
-
-    An object of this type is owned by :py:attr:`Vehicle.location`. See that class for information on
+    An object of this type is owned by `Vehicle.location`. See that class for information on
     reading and observing location in the global frame.
 
-    :param lat: Latitude.
-    :param lon: Longitude.
-    :param alt: Altitude in meters relative to mean sea-level (MSL).
+    ---
+
+    Args:
+        `lat`: Latitude
+        `lon`: Longitude  
+        `alt`: Altitude in meters relative to mean sea-level (MSL)
+
+    ---
+
+    TODO: Location class - possibly add a vector3 representation.
     """
+    lat: float
+    lon: float
+    alt: Optional[float] = None
+    
+    # For backward compatibility
+    local_frame: Optional[Any] = field(default=None, init=False)
+    global_frame: Optional[Any] = field(default=None, init=False)
 
-    def __init__(self, lat, lon, alt=None):
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
-
-        # This is for backward compatibility.
-        self.local_frame = None
-        self.global_frame = None
-
-    def __str__(self):
-        return "LocationGlobal:lat=%s,lon=%s,alt=%s" % (self.lat, self.lon, self.alt)
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: lat = {self.lat}, lon = {self.lon}, alt = {self.alt}"
+    # __str__
+# LocationGlobal
 
 
-class LocationGlobalRelative(object):
+
+@dataclass
+class LocationGlobalRelative:
     """
-    A global location object, with attitude relative to home location altitude.
+    ### A global location object with altitude relative to home location.
 
-    The latitude and longitude are relative to the `WGS84 coordinate system <http://en.wikipedia.org/wiki/World_Geodetic_System>`_.
-    The altitude is relative to the *home position*.
+    The latitude and longitude are relative to the `WGS84 coordinate system`.
+    The altitude is relative to the home position.
 
-    For example, a ``LocationGlobalRelative`` object with an altitude of 30 metres above the home location might be defined as:
+    Example:
+    ```python
+    # A location 30 metres above the home location
+    location = LocationGlobalRelative(-34.364114, 149.166022, 30)
+    ```
 
-    .. code:: python
-
-       LocationGlobalRelative(-34.364114, 149.166022, 30)
-
-    .. todo:: FIXME: Location class - possibly add a vector3 representation.
-
-    An object of this type is owned by :py:attr:`Vehicle.location`. See that class for information on
+    An object of this type is owned by `Vehicle.location`. See that class for information on
     reading and observing location in the global-relative frame.
 
-    :param lat: Latitude.
-    :param lon: Longitude.
-    :param alt: Altitude in meters (relative to the home location).
+    ---
+
+    Args:
+        `lat`: Latitude
+        `lon`: Longitude
+        `alt`: Altitude in meters (relative to the home location)
+
+    ---
+
+    TODO: Location class - possibly add a vector3 representation.
     """
+    lat: float
+    lon: float
+    alt: Optional[float] = None
+    
+    # For backward compatibility
+    local_frame: Optional[Any] = field(default=None, init=False)
+    global_frame: Optional[Any] = field(default=None, init=False)
 
-    def __init__(self, lat, lon, alt=None):
-        self.lat = lat
-        self.lon = lon
-        self.alt = alt
-
-        # This is for backward compatibility.
-        self.local_frame = None
-        self.global_frame = None
-
-    def __str__(self):
-        return f"LocationGlobalRelative: lat = {self.lat}, lon = {self.lon}, alt = {self.alt}"
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: lat = {self.lat}, lon = {self.lon}, alt = {self.alt}"
+    # __str__
+# LocationGlobalRelative
 
 
-class LocationLocal(object):
+
+@dataclass
+class LocationLocal:
     """
-    A local location object.
+    ### A local location object.
 
-    The north, east and down are relative to the EKF origin.  This is most likely the location where the vehicle was turned on.
+    The north, east and down are relative to the EKF origin. This is most likely the location 
+    where the vehicle was turned on.
 
-    An object of this type is owned by :py:attr:`Vehicle.location`. See that class for information on
+    An object of this type is owned by `Vehicle.location`. See that class for information on
     reading and observing location in the local frame.
 
-    :param north: Position north of the EKF origin in meters.
-    :param east: Position east of the EKF origin in meters.
-    :param down: Position down from the EKF origin in meters. (i.e. negative altitude in meters)
+    ---
+
+    Args:
+        `north`: Position north of the EKF origin in meters
+        `east`: Position east of the EKF origin in meters
+        `down`: Position down from the EKF origin in meters (i.e. negative altitude in meters)
+
+    ---
     """
+    north: float
+    east: float
+    down: float
 
-    def __init__(self, north, east, down):
-        self.north = north
-        self.east = east
-        self.down = down
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: north = {self.north}, east = {self.east}, down = {self.down}"
+    # __str__
 
-    def __str__(self):
-        return "LocationLocal:north=%s,east=%s,down=%s" % (self.north, self.east, self.down)
 
-    def distance_home(self):
+    def distance_home(self) -> Optional[float]:
         """
-        Distance away from home, in meters. Returns 3D distance if `down` is known, otherwise 2D distance.
+        ### Distance away from home in meters.
+        
+        Returns 3D distance if `down` is known, otherwise 2D distance.
+        
+        ---
+        
+        Returns:
+            Distance in meters, or None if position is not known
+            
+        ---
         """
-
         if self.north is not None and self.east is not None:
             if self.down is not None:
                 return math.sqrt(self.north**2 + self.east**2 + self.down**2)
             else:
                 return math.sqrt(self.north**2 + self.east**2)
+        return None
+    # distance_home
+# LocationLocal
 
 
-class GPSInfo(object):
+
+@dataclass
+class GPSInfo:
     """
-    Standard information about GPS.
+    ### Standard information about GPS.
 
-    If there is no GPS lock the parameters are set to ``None``.
+    If there is no GPS lock the parameters are set to `None`.
 
-    :param Int eph: GPS horizontal dilution of position (HDOP).
-    :param Int epv: GPS vertical dilution of position (VDOP).
-    :param Int fix_type: 0-1: no fix, 2: 2D fix, 3: 3D fix
-    :param Int satellites_visible: Number of satellites visible.
+    ---
 
-    .. todo:: FIXME: GPSInfo class - possibly normalize eph/epv?  report fix type as string?
+    Args:
+        `eph`: GPS horizontal dilution of position (HDOP)
+        `epv`: GPS vertical dilution of position (VDOP)
+        `fix_type`: 0-1: no fix, 2: 2D fix, 3: 3D fix
+        `satellites_visible`: Number of satellites visible
+
+    ---
+
+    TODO: GPSInfo class - possibly normalize eph/epv?  report fix type as string?
     """
+    eph: Optional[int]
+    epv: Optional[int]
+    fix_type: Optional[int]
+    satellites_visible: Optional[int]
 
-    def __init__(self, eph, epv, fix_type, satellites_visible):
-        self.eph = eph
-        self.epv = epv
-        self.fix_type = fix_type
-        self.satellites_visible = satellites_visible
-
-    def __str__(self):
-        return "GPSInfo:fix=%s,num_sat=%s" % (self.fix_type, self.satellites_visible)
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: fix = {self.fix_type}, num_sat={self.satellites_visible}"
+    # __str__
+# GPSInfo
 
 
-class Wind(object):
+
+@dataclass
+class Wind:
     """
-    Wind information
+    ### Wind information.
 
-    An object of this type is returned by :py:attr: `Vehicle.wind`.
+    An object of this type is returned by `Vehicle.wind`.
 
-    :param wind_direction: Wind direction in degrees
-    :param wind_speed: Wind speed in m/s
-    :param wind_speed_z: vertical wind speed in m/s
+    ---
+
+    Args:
+        `wind_direction`: Wind direction in degrees
+        `wind_speed`: Wind speed in m/s
+        `wind_speed_z`: Vertical wind speed in m/s
+
+    ---
     """
-    def __init__(self, wind_direction, wind_speed, wind_speed_z):
-        self.wind_direction = wind_direction
-        self.wind_speed = wind_speed
-        self.wind_speed_z = wind_speed_z
+    wind_direction: float
+    wind_speed: float
+    wind_speed_z: float
     
-    def __str__(self):
-        return "Wind: wind direction: {}, wind speed: {}, wind speed z: {}".format(self.wind_direction, self.wind_speed, self.wind_speed_z)
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: direction = {self.wind_direction}°, speed = {self.wind_speed}m/s, vertical_speed = {self.wind_speed_z}m/s"
+    # __str__
+# Wind
 
 
-class Battery(object):
+
+class Battery:
     """
-    System battery information.
+    ### System battery information.
 
-    An object of this type is returned by :py:attr:`Vehicle.battery`.
+    An object of this type is returned by `Vehicle.battery`.
 
-    :param voltage: Battery voltage in millivolts.
-    :param current: Battery current, in 10 * milliamperes. ``None`` if the autopilot does not support current measurement.
-    :param level: Remaining battery energy. ``None`` if the autopilot cannot estimate the remaining battery.
-    """
+    ---
 
-    def __init__(self, voltage, current, level):
-        self.voltage = voltage / 1000.0
-        if current == -1:
-            self.current = None
-        else:
-            self.current = current / 100.0
-        if level == -1:
-            self.level = None
-        else:
-            self.level = level
+    Args:
+        `voltage`: Battery voltage in millivolts
+        `current`: Battery current in 10 * milliamperes. `None` if the autopilot does not support current measurement
+        `level`: Remaining battery energy. `None` if the autopilot cannot estimate the remaining battery
 
-    def __str__(self):
-        return "Battery:voltage={},current={},level={}".format(self.voltage, self.current,
-                                                               self.level)
-
-
-class Rangefinder(object):
-    """
-    Rangefinder readings.
-
-    An object of this type is returned by :py:attr:`Vehicle.rangefinder`.
-
-    :param distance: Distance (metres). ``None`` if the vehicle doesn't have a rangefinder.
-    :param voltage: Voltage (volts). ``None`` if the vehicle doesn't have a rangefinder.
+    ---
     """
 
-    def __init__(self, distance, voltage):
-        self.distance = distance
-        self.voltage = voltage
+    def __init__(self, voltage: int, current: int, level: int) -> None:
+        self.voltage: float = voltage / 1000.0
+        self.current: Optional[float] = None if current == -1 else current / 100.0
+        self.level: Optional[int] = None if level == -1 else level
+    # __init__
 
-    def __str__(self):
-        return "Rangefinder: distance={}, voltage={}".format(self.distance, self.voltage)
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: voltage={self.voltage}, current={self.current}, level={self.level}"
+    # __str__
+# Battery
 
 
-class Version(object):
+
+# MB's battery class:
+# class Battery:
+#     """
+#     ### System battery information.
+
+#     An object of this type is returned by `Vehicle.battery`.
+
+#     ---
+
+#     Args:
+#         voltage: Battery voltage in millivolts
+#         current: Battery current in 10 * milliamperes. `None` if the autopilot does not support current measurement
+#         level: Remaining battery energy percentage. `None` if the autopilot cannot estimate remaining battery
+        
+#     ---
+#     """
+    
+#     def __init__(self, voltage: int, current: int, level: int):
+#         self.voltage: float = voltage / 1000.0
+#         if current == -1:
+#             self.current: Optional[float] = None
+#         else:
+#             self.current = current / 100.0
+#         if level == -1:
+#             self.level: Optional[int] = None
+#         else:
+#             self.level = level
+
+#     def __str__(self) -> str:
+#         return f"{self.__class__.__name__}: voltage={self.voltage}, current={self.current}, level={self.level}"
+
+
+
+@dataclass
+class Rangefinder:
     """
-    Autopilot version and type.
+    ### Rangefinder readings.
 
-    An object of this type is returned by :py:attr:`Vehicle.version`.
+    An object of this type is returned by `Vehicle.rangefinder`.
 
-    The version number can be read in a few different formats. To get it in a human-readable
-    format, just print `vehicle.version`.  This might print something like "APM:Copter-3.3.2-rc4".
+    ---
 
-    .. versionadded:: 2.0.3
-
-    .. py:attribute:: major
-
-        Major version number (integer).
-
-    .. py:attribute::minor
-
-        Minor version number (integer).
-
-    .. py:attribute:: patch
-
-        Patch version number (integer).
-
-    .. py:attribute:: release
-
-        Release type (integer). See the enum `FIRMWARE_VERSION_TYPE <http://mavlink.org/messages/common#http://mavlink.org/messages/common#FIRMWARE_VERSION_TYPE_DEV>`_.
-
-        This is a composite of the product release cycle stage (rc, beta etc) and the version in that cycle - e.g. 23.
-
+    Args:
+        `distance`: Distance in metres. `None` if the vehicle doesn't have a rangefinder
+        `voltage`: Voltage in volts. `None` if the vehicle doesn't have a rangefinder
     """
-    def __init__(self, raw_version, autopilot_type, vehicle_type):
-        self.autopilot_type = autopilot_type
-        self.vehicle_type = vehicle_type
-        self.raw_version = raw_version
-        if raw_version is None:
+    distance: Optional[float]
+    voltage: Optional[float]
+
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: distance = {self.distance}m, voltage = {self.voltage}V"
+    # __str__
+# Rangefinder
+
+
+
+@dataclass
+class Version:
+    """
+    ### Autopilot version and type.
+
+    An object of this type is returned by `Vehicle.version`.
+
+    The version number can be read in a human-readable format by printing the object.
+    This might print something like "APM:Copter-3.3.2-rc4".
+
+    ---
+
+    Attributes:
+        `major`: Major version number (integer)
+        `minor`: Minor version number (integer)
+        `patch`: Patch version number (integer)
+        `release`: Release type (integer). See FIRMWARE_VERSION_TYPE enum
+        `raw_version`: Raw version data from autopilot
+        `autopilot_type`: The autopilot type (e.g., ArduPilot, PX4)
+        `vehicle_type`: The vehicle type (e.g., copter, plane, rover)
+
+    ---
+    """
+    raw_version: Optional[int]
+    autopilot_type: int
+    vehicle_type: int
+    major: Optional[int] = field(init=False)
+    minor: Optional[int] = field(init=False)
+    patch: Optional[int] = field(init=False)
+    release: Optional[int] = field(init=False)
+
+
+    def __post_init__(self) -> None:
+        if self.raw_version is None:
             self.major = None
             self.minor = None
             self.patch = None
             self.release = None
         else:
-            self.major   = raw_version >> 24 & 0xFF
-            self.minor   = raw_version >> 16 & 0xFF
-            self.patch   = raw_version >> 8  & 0xFF
-            self.release = raw_version & 0xFF
+            self.major = self.raw_version >> 24 & 0xFF
+            self.minor = self.raw_version >> 16 & 0xFF
+            self.patch = self.raw_version >> 8 & 0xFF
+            self.release = self.raw_version & 0xFF
+    # __post_init__
 
-    def is_stable(self):
+
+    def is_stable(self) -> bool:
         """
-        Returns True if the autopilot reports that the current firmware is a stable
-        release (not a pre-release or development version).
+        ### Check if firmware is stable release.
+        
+        ---
+
+        Returns:
+            `True` if the autopilot reports that the current firmware is a stable
+            release (not a pre-release or development version).
+
+        ---
         """
         return self.release == 255
+    # is_stable
 
-    def release_version(self):
+
+    def release_version(self) -> Optional[int]:
         """
-        Returns the version within the release type (an integer).
-        This method returns "23" for Copter-3.3rc23.
+        ### Get version within the release type.
+        
+        ---
+
+        Returns:
+            The version within the release type (an integer).
+            For example, returns "23" for Copter-3.3rc23.
+
+        ---
         """
         if self.release is None:
             return None
         if self.release == 255:
             return 0
         return self.release % 64
+    # release_version
 
-    def release_type(self):
+
+    def release_type(self) -> Optional[str]:
         """
-        Returns text describing the release type e.g. "alpha", "stable" etc.
+        ### Get release type description.
+        
+        ---
+
+        Returns:
+            Text describing the release type e.g. "alpha", "stable" etc.
+
+        ---
         """
         if self.release is None:
             return None
         types = ["dev", "alpha", "beta", "rc"]
         return types[self.release >> 6]
+    # release_type
 
-    def __str__(self):
+
+    def __str__(self) -> str:
         prefix = ""
 
         if self.autopilot_type == mavutil.mavlink.MAV_AUTOPILOT_ARDUPILOTMEGA:
@@ -374,100 +1070,68 @@ class Version(object):
         elif self.vehicle_type == mavutil.mavlink.MAV_TYPE_GROUND_ROVER:
             prefix += "Rover-"
         else:
-            prefix += "UnknownVehicleType%d-" % self.vehicle_type
+            prefix += f"UnknownVehicleType{self.vehicle_type}-"
 
         if self.release_type() is None:
             release_type = "UnknownReleaseType"
         elif self.is_stable():
             release_type = ""
         else:
-            # e.g. "-rc23"
-            release_type = "-" + str(self.release_type()) + str(self.release_version())
+            release_type = f"-{self.release_type()}{self.release_version()}"
 
-        return prefix + "%s.%s.%s" % (self.major, self.minor, self.patch) + release_type
+        return f"{prefix}{self.major}.{self.minor}.{self.patch}{release_type}"
+    # __str__
+# FirmwareVersion
+
 
 
 class Capabilities:
     """
-    Autopilot capabilities (supported message types and functionality).
+    ### Autopilot capabilities (supported message types and functionality).
 
-    An object of this type is returned by :py:attr:`Vehicle.capabilities`.
+    An object of this type is returned by `Vehicle.capabilities`.
 
-    See the enum
-    `MAV_PROTOCOL_CAPABILITY <http://mavlink.org/messages/common#MAV_PROTOCOL_CAPABILITY_MISSION_FLOAT>`_.
+    See the enum `MAV_PROTOCOL_CAPABILITY`.
 
-    .. versionadded:: 2.0.3
+    ---
 
+    Attributes:
+        `mission_float`: Autopilot supports MISSION float message type (Boolean)
+        `param_float`: Autopilot supports the PARAM float message type (Boolean)
+        `mission_int`: Autopilot supports MISSION_INT scaled integer message type (Boolean)
+        `command_int`: Autopilot supports COMMAND_INT scaled integer message type (Boolean)
+        `param_union`: Autopilot supports the PARAM_UNION message type (Boolean)
+        `ftp`: Autopilot supports ftp for file transfers (Boolean)
+        `set_attitude_target`: Autopilot supports commanding attitude offboard (Boolean)
+        `set_attitude_target_local_ned`: Autopilot supports commanding position and velocity targets in local NED frame (Boolean)
+        `set_altitude_target_global_int`: Autopilot supports commanding position and velocity targets in global scaled integers (Boolean)
+        `terrain`: Autopilot supports terrain protocol / data handling (Boolean)
+        `set_actuator_target`: Autopilot supports direct actuator control (Boolean)
+        `flight_termination`: Autopilot supports the flight termination command (Boolean)
+        `compass_calibration`: Autopilot supports onboard compass calibration (Boolean)
 
-    .. py:attribute:: mission_float
-
-        Autopilot supports MISSION float message type (Boolean).
-
-    .. py:attribute:: param_float
-
-        Autopilot supports the PARAM float message type (Boolean).
-
-    .. py:attribute:: mission_int
-
-        Autopilot supports MISSION_INT scaled integer message type (Boolean).
-
-    .. py:attribute:: command_int
-
-        Autopilot supports COMMAND_INT scaled integer message type (Boolean).
-
-    .. py:attribute:: param_union
-
-        Autopilot supports the PARAM_UNION message type (Boolean).
-
-    .. py:attribute:: ftp
-
-        Autopilot supports ftp for file transfers (Boolean).
-
-    .. py:attribute:: set_attitude_target
-
-        Autopilot supports commanding attitude offboard (Boolean).
-
-    .. py:attribute:: set_attitude_target_local_ned
-
-        Autopilot supports commanding position and velocity targets in local NED frame (Boolean).
-
-    .. py:attribute:: set_altitude_target_global_int
-
-        Autopilot supports commanding position and velocity targets in global scaled integers (Boolean).
-
-    .. py:attribute:: terrain
-
-        Autopilot supports terrain protocol / data handling (Boolean).
-
-    .. py:attribute:: set_actuator_target
-
-        Autopilot supports direct actuator control (Boolean).
-
-    .. py:attribute:: flight_termination
-
-        Autopilot supports the flight termination command (Boolean).
-
-    .. py:attribute:: compass_calibration
-
-        Autopilot supports onboard compass calibration (Boolean).
+    ---
     """
-    def __init__(self, capabilities):
-        self.mission_float                  = (((capabilities >> 0)  & 1) == 1)
-        self.param_float                    = (((capabilities >> 1)  & 1) == 1)
-        self.mission_int                    = (((capabilities >> 2)  & 1) == 1)
-        self.command_int                    = (((capabilities >> 3)  & 1) == 1)
-        self.param_union                    = (((capabilities >> 4)  & 1) == 1)
-        self.ftp                            = (((capabilities >> 5)  & 1) == 1)
-        self.set_attitude_target            = (((capabilities >> 6)  & 1) == 1)
-        self.set_attitude_target_local_ned  = (((capabilities >> 7)  & 1) == 1)
-        self.set_altitude_target_global_int = (((capabilities >> 8)  & 1) == 1)
-        self.terrain                        = (((capabilities >> 9)  & 1) == 1)
-        self.set_actuator_target            = (((capabilities >> 10) & 1) == 1)
-        self.flight_termination             = (((capabilities >> 11) & 1) == 1)
-        self.compass_calibration            = (((capabilities >> 12) & 1) == 1)
+    def __init__(self, capabilities: int):
+        self.mission_float: bool = (((capabilities >> 0) & 1) == 1)
+        self.param_float: bool = (((capabilities >> 1) & 1) == 1)
+        self.mission_int: bool = (((capabilities >> 2) & 1) == 1)
+        self.command_int: bool = (((capabilities >> 3) & 1) == 1)
+        self.param_union: bool = (((capabilities >> 4) & 1) == 1)
+        self.ftp: bool = (((capabilities >> 5) & 1) == 1)
+        self.set_attitude_target: bool = (((capabilities >> 6) & 1) == 1)
+        self.set_attitude_target_local_ned: bool = (((capabilities >> 7) & 1) == 1)
+        self.set_altitude_target_global_int: bool = (((capabilities >> 8) & 1) == 1)
+        self.terrain: bool = (((capabilities >> 9) & 1) == 1)
+        self.set_actuator_target: bool = (((capabilities >> 10) & 1) == 1)
+        self.flight_termination: bool = (((capabilities >> 11) & 1) == 1)
+        self.compass_calibration: bool = (((capabilities >> 12) & 1) == 1)
+    # __init__
+# Capabilities
 
 
-class VehicleMode(object):
+        
+class VehicleMode:
     """
     ### This object is used to get and set the current "flight mode".
 
@@ -475,78 +1139,104 @@ class VehicleMode(object):
     The recommended flight modes for DroneKit-Python apps depend on the vehicle type:
 
     * Copter apps should use `AUTO` mode for "normal" waypoint missions and `GUIDED` mode otherwise.
-    * Plane and Rover apps should use the `AUTO` mode in all cases, re-writing the mission commands if "dynamic" behaviour is required (they support only a limited subset of commands in `GUIDED` mode).
-    * Some modes like `RETURN_TO_LAUNCH` can be used on all platforms. Care should be taken when using manual modes as these may require remote control input from the user.
+    * Plane and Rover apps should use the `AUTO` mode in all cases, re-writing the mission commands if "dynamic"
+      behaviour is required (they support only a limited subset of commands in `GUIDED` mode).
+    * Some modes like `RETURN_TO_LAUNCH` can be used on all platforms. Care should be taken
+      when using manual modes as these may require remote control input from the user.
 
     The available set of supported flight modes is vehicle-specific (see
     `Copter Modes <http://copter.ardupilot.com/wiki/flying-arducopter/flight-modes/>`,
     `Plane Modes <http://plane.ardupilot.com/wiki/flying/flight-modes/>`,
-    `Rover Modes <http://rover.ardupilot.com/wiki/configuration-2/#mode_meanings>`). 
-    
-    If an unsupported mode is set the script will raise a `KeyError` exception.
+    `Rover Modes <http://rover.ardupilot.com/wiki/configuration-2/#mode_meanings>`). If an unsupported mode is set the script
+    will raise a `KeyError` exception.
 
-    The :py:attr:`Vehicle.mode` attribute can be queried for the current mode.
-    The code snippet below shows how to observe changes to the mode and then read the value.
+    The `Vehicle.mode` attribute can be queried for the current mode.
+    The code snippet below shows how to observe changes to the mode and then read the value:
 
-    .. code:: python
+    ```python
+    #Callback definition for mode observer
+    def mode_callback(self, attr_name):
+        print("Vehicle Mode", self.mode)
 
-        #Callback definition for mode observer
-        def mode_callback(self, attr_name):
-            print "Vehicle Mode", self.mode
-
-        #Add observer callback for attribute `mode`
-        vehicle.add_attribute_listener('mode', mode_callback)
+    #Add observer callback for attribute `mode`
+    vehicle.add_attribute_listener('mode', mode_callback)
+    ```
 
     The code snippet below shows how to change the vehicle mode to AUTO:
 
-    .. code:: python
+    ```python
+    # Set the vehicle into auto mode
+    vehicle.mode = VehicleMode("AUTO")
+    ```
 
-        # Set the vehicle into auto mode
-        vehicle.mode = VehicleMode("AUTO")
+    For more information on getting/setting/observing the `Vehicle.mode`
+    (and other attributes) see the `attributes guide <vehicle_state_attributes>`.
 
-    For more information on getting/setting/observing the :py:attr:`Vehicle.mode`
-    (and other attributes) see the :ref:`attributes guide <vehicle_state_attributes>`.
+    ---
 
-    .. py:attribute:: name
+    Attributes:
+        `name`: The mode name, as a string
 
-        The mode name, as a ``string``.
+    ---
     """
-
-    def __init__(self, name):
-        self.name = name
-
-    def __str__(self):
-        return "VehicleMode:%s" % self.name
-
-    def __eq__(self, other):
-        return self.name == other
-
-    def __ne__(self, other):
-        return self.name != other
+    
+    def __init__(self, name: str):
+        self.name: str = name
+    # __init__
 
 
-class SystemStatus(object):
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: {self.name}"
+    # __str__
+
+
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, str):
+            return self.name == other
+        return self.name == getattr(other, 'name', other)
+    # __eq__
+
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+    # __ne__
+# VehicleMode
+
+
+
+@dataclass
+class SystemStatus:
     """
-    This object is used to get and set the current "system status".
+    ### This object is used to get and set the current "system status".
 
-    An object of this type is returned by :py:attr:`Vehicle.system_status`.
+    An object of this type is returned by `Vehicle.system_status`.
 
-    .. py:attribute:: state
+    ---
 
-        The system state, as a ``string``.
+    Attributes:
+        `state`: The system state, as a string
+
+    ---
     """
+    state: str
 
-    def __init__(self, state):
-        self.state = state
+    def __str__(self) -> str:
+        return f"{self.__class__.__name__}: {self.state}"
+    # __str__
 
-    def __str__(self):
-        return "SystemStatus:%s" % self.state
 
-    def __eq__(self, other):
-        return self.state == other
+    def __eq__(self, other: Any) -> bool:
+        if isinstance(other, str):
+            return self.state == other
+        return self.state == getattr(other, 'state', other)
+    # __eq__
 
-    def __ne__(self, other):
-        return self.state != other
+
+    def __ne__(self, other: Any) -> bool:
+        return not self.__eq__(other)
+    # __ne__
+# SystemStatus
+
 
 
 class HasObservers(object):
@@ -720,13 +1410,24 @@ class HasObservers(object):
 
 
 class ChannelsOverride(dict):
+    """ OLD
+    A dictionary class for managing Vehicle channel overrides.
+
+    Channels can be read, written, or cleared by index or using a dictionary syntax.
+    To clear a value, set it to ``None`` or use ``del`` on the item.
+
+    An object of this type is returned by :py:attr:`Vehicle.channels.overrides <Channels.overrides>`.
+
+    For more information and examples see :ref:`example_channel_overrides`.
     """
+
+    """ NEW
     ### A dictionary class for managing Vehicle channel overrides.
 
     Channels can be read, written, or cleared by index or using a dictionary syntax.
     To clear a value, set it to `None` or use `del` on the item.
 
-    An object of this type is returned by :py:attr:`Vehicle.channels.overrides <Channels.overrides>`.
+    An object of this type is returned by `Vehicle.channels.overrides ≡ Channels.overrides`.
 
     For more information and examples see :ref:`example_channel_overrides`.
     """
@@ -815,12 +1516,40 @@ class Channels(dict):
 
     @property
     def overrides(self):
-        """
-        Attribute to read, set and clear channel overrides (also known as "rc overrides")
-        associated with a :py:class:`Vehicle` (via :py:class:`Vehicle.channels`). This is an
-        object of type :py:class:`ChannelsOverride`.
-
+        """ OLD
         For more information and examples see :ref:`example_channel_overrides`.
+
+        To set channel overrides:
+
+        .. code:: python
+
+            # Set and clear overrids using dictionary syntax (clear by setting override to none)
+            vehicle.channels.overrides = {'5':None, '6':None,'3':500}
+
+            # You can also set and clear overrides using indexing syntax
+            vehicle.channels.overrides['2'] = 200
+            vehicle.channels.overrides['2'] = None
+
+            # Clear using 'del'
+            del vehicle.channels.overrides['3']
+
+            # Clear all overrides by setting an empty dictionary
+            vehicle.channels.overrides = {}
+
+        Read the channel overrides either as a dictionary or by index. Note that you'll get
+        a ``KeyError`` exception if you read a channel override that has not been set.
+
+        .. code:: python
+
+            # Get all channel overrides
+            print " Channel overrides: %s" % vehicle.channels.overrides
+            # Print just one channel override
+            print " Ch2 override: %s" % vehicle.channels.overrides['2']
+        """
+
+
+        """ NEW
+        Attribute to read, set and clear channel overrides (also known as "rc overrides") associated with a `Vehicle` (via `Vehicle.channels`). This is an object of type `ChannelsOverride`.
 
         To set channel overrides:
 
@@ -839,15 +1568,16 @@ class Channels(dict):
             vehicle.channels.overrides = {}
         ```
 
-        Read the channel overrides either as a dictionary or by index. Note that you'll get
-        a `KeyError` exception if you read a channel override that has not been set.
+        It's possible to read the channel overrides either as a dictionary or by index. Note that you'll get a `KeyError` exception if you read a channel override that has not been set.
 
         ```python
             # Get all channel overrides
-            print " Channel overrides: %s" % vehicle.channels.overrides
+            print (f"Channel overrides: {vehicle.channels.overrides}")
             # Print just one channel override
-            print " Ch2 override: %s" % vehicle.channels.overrides['2']
+            print (f"Ch2 override: {vehicle.channels.overrides['2']}")
         ```
+
+        For more information and examples see :ref:`example_channel_overrides`.
         """
         return self._overrides
 
@@ -986,10 +1716,12 @@ class Locations(HasObservers):
 
 
 class Vehicle(HasObservers):
-    """
-    ### The main vehicle API.
+    """ OLD
+    The main vehicle API.
 
-    Vehicle state is exposed through 'attributes' (e.g. :py:attr:`heading`). All attributes can be read, and some are also settable (:py:attr:`mode`, :py:attr:`armed` and :py:attr:`home_location`).
+    Vehicle state is exposed through 'attributes' (e.g. :py:attr:`heading`). All attributes can be
+    read, and some are also settable
+    (:py:attr:`mode`, :py:attr:`armed` and :py:attr:`home_location`).
 
     Attributes can also be asynchronously monitored for changes by registering listener callback
     functions.
@@ -997,9 +1729,54 @@ class Vehicle(HasObservers):
     Vehicle "settings" (parameters) are read/set using the :py:attr:`parameters` attribute.
     Parameters can be iterated and are also individually observable.
 
-    Vehicle movement is primarily controlled using the :py:attr:`armed` attribute and the :py:func:`simple_takeoff` and :py:func:`simple_goto` methods in `GUIDED` mode.
+    Vehicle movement is primarily controlled using the :py:attr:`armed` attribute and
+    :py:func:`simple_takeoff` and :py:func:`simple_goto` in GUIDED mode.
 
-    It is also possible to work with vehicle "missions" using the :py:attr:`commands` attribute, and run them in `AUTO` mode.
+    It is also possible to work with vehicle "missions" using the :py:attr:`commands` attribute,
+    and run them in AUTO mode.
+
+    STATUSTEXT log messages from the autopilot are handled through a separate logger.
+    It is possible to configure the log level, the formatting, etc. by accessing the logger, e.g.:
+
+    .. code-block:: python
+
+        import logging
+        autopilot_logger = logging.getLogger('autopilot')
+        autopilot_logger.setLevel(logging.DEBUG)
+
+    The guide contains more detailed information on the different ways you can use
+    the ``Vehicle`` class:
+
+    - :doc:`guide/vehicle_state_and_parameters`
+    - :doc:`guide/copter/guided_mode`
+    - :doc:`guide/auto_mode`
+
+
+    .. note::
+
+        This class currently exposes just the attributes that are most commonly used by all
+        vehicle types. if you need to add additional attributes then subclass ``Vehicle``
+        as demonstrated in :doc:`examples/create_attribute`.
+
+        Please then :doc:`contribute <contributing/contributions_api>` your additions back
+        to the project!
+    """
+    
+    
+    """ NEW
+    ### The main vehicle API.
+
+    Vehicle state is exposed through 'attributes' (e.g. `heading`). All attributes can be read, and some are also settable (`mode`, `armed` and `home_location`).
+
+    Attributes can also be asynchronously monitored for changes by registering listener callback
+    functions.
+
+    Vehicle "settings" (parameters) are read/set using the `parameters` attribute.
+    Parameters can be iterated and are also individually observable.
+
+    Vehicle movement is primarily controlled using the `armed` attribute and the `simple_takeoff` and `simple_goto` methods in `GUIDED` mode.
+
+    It is also possible to work with vehicle "missions" using the `commands` attribute, and run them in `AUTO` mode.
 
     STATUSTEXT log messages from the autopilot are handled through a separate logger. It is possible to configure the log level, the formatting, etc. by accessing the logger, e.g.:
 
@@ -1011,14 +1788,14 @@ class Vehicle(HasObservers):
 
     The guide contains more detailed information on the different ways you can use the `Vehicle` class:
 
-    - :doc:`guide/vehicle_state_and_parameters`
-    - :doc:`guide/copter/guided_mode`
-    - :doc:`guide/auto_mode`
+    - `guide/vehicle_state_and_parameters`
+    - `guide/copter/guided_mode`
+    - `guide/auto_mode`
 
 
     #### NOTE:
-        This class currently exposes just the attributes that are most commonly used by all vehicle types. If you need to add additional attributes then subclass `Vehicle` as demonstrated in :doc:`examples/create_attribute`. 
-        ∴ please then :doc:`contribute <contributing/contributions_api>` your additions back to the project!
+        This class currently exposes just the attributes that are most commonly used by all vehicle types. If you need to add additional attributes then subclass `Vehicle` as demonstrated in  the wiki `examples/create_attribute`. 
+        ∴ please then `contribute <contributing/contributions_api>` your additions back to the project!
     """
 
     def __init__(self, handler):
@@ -2343,10 +3120,43 @@ class Vehicle(HasObservers):
         self.send_mavlink(msg)
 
     def wait_ready(self, *types, **kwargs):
+        """ OLD
+        Waits for specified attributes to be populated from the vehicle (values are initially ``None``).
+
+        This is typically called "behind the scenes" to ensure that :py:func:`connect` does not return until
+        attributes have populated (via the ``wait_ready`` parameter). You can also use it after connecting to
+        wait on a specific value(s).
+
+        There are two ways to call the method:
+
+        .. code-block:: python
+
+            #Wait on default attributes to populate
+            vehicle.wait_ready(True)
+
+            #Wait on specified attributes (or array of attributes) to populate
+            vehicle.wait_ready('mode','airspeed')
+
+        Using the ``wait_ready(True)`` waits on :py:attr:`parameters`, :py:attr:`gps_0`,
+        :py:attr:`armed`, :py:attr:`mode`, and :py:attr:`attitude`. In practice this usually
+        means that all supported attributes will be populated.
+
+        By default, the method will timeout after 30 seconds and raise an exception if the
+        attributes were not populated.
+
+        :param types: ``True`` to wait on the default set of attributes, or a
+            comma-separated list of the specific attributes to wait on.
+        :param int timeout: Timeout in seconds after which the method will raise an exception
+            (the default) or return ``False``. The default timeout is 30 seconds.
+        :param Boolean raise_exception: If ``True`` the method will raise an exception on timeout,
+            otherwise the method will return ``False``. The default is ``True`` (raise exception).
         """
+
+
+        """ NEW
         Waits for specified attributes to be populated from the vehicle (values are initially `None`).
 
-        This is typically called behind-the-scenes to ensure that :py:func:`connect` does not return until attributes have populated (via the `wait_ready` parameter). 
+        This is typically called behind-the-scenes to ensure that `connect` does not return until attributes have populated (via the `wait_ready` parameter). 
         
         You can also use it after connecting to wait on a specific value(s).
 
@@ -2357,18 +3167,18 @@ class Vehicle(HasObservers):
             vehicle.wait_ready(True)
 
             # 2. Wait on specified attributes (or array of attributes) to populate
-            vehicle.wait_ready('mode','airspeed')
+            vehicle.wait_ready('mode', 'airspeed')
         ```
         
         ---
 
         These are the default attributes:
         
-        1. :py:attr:`parameters`, 
-        2. :py:attr:`gps_0`, 
-        3. :py:attr:`armed`,
-        4. :py:attr:`mode`, 
-        5. :py:attr:`attitude`.
+        1. `parameters`, 
+        2. `gps_0`, 
+        3. `armed`,
+        4. `mode`, 
+        5. `attitude`.
         
         --- 
         
@@ -2377,12 +3187,15 @@ class Vehicle(HasObservers):
         By default, the method will timeout after 30 seconds and raise an exception if the
         attributes were not populated.
 
-        - param types: ``True`` to wait on the default set of attributes, or a
-            comma-separated list of the specific attributes to wait on.
-        - param int timeout: Timeout in seconds after which the method will raise an exception
-            (the default) or return ``False``. The default timeout is 30 seconds.
-        - param Boolean raise_exception: If ``True`` the method will raise an exception on timeout,
-            otherwise the method will return ``False``. The default is ``True`` (raise exception).
+        ---
+
+        Args:
+        
+        1. `types`: `True` to wait on the default set of attributes, or a comma-separated list of the specific attributes to wait on.
+        2. `timeout`: An integer representing the timeout in seconds after which the method will raise an exception (the default) or return `False`. The default timeout is 30 seconds.
+        3. `raise_exception`: A boolean representing whether the method will raise an exception on timeout, otherwise the method will return `False`. The default is `True` (raise exception).
+        
+        --- 
         """
         timeout = kwargs.get('timeout', 30)
         raise_exception = kwargs.get('raise_exception', True)

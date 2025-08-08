@@ -10,3 +10,14 @@ build
 *.pyc
 env
 vs/.vs/dronekit-python/v14/*.suo
+
+
+
+
+# My refactor temp files:
+MA_init.py
+MB_init.py
+
+
+
+
