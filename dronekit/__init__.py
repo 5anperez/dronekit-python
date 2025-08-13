@@ -42,7 +42,6 @@ import logging
 import math
 import struct
 import time
-from tracemalloc import stop
 
 import monotonic
 from past.builtins import basestring
@@ -113,10 +112,10 @@ class Attitude:
 
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                pitch = {self.pitch:.4f}, 
-                yaw = {self.yaw:.4f}, 
-                roll = {self.roll:.4f}")
+        return (f"{self.__class__.__name__}: "
+                f"pitch = {self.pitch:.4f}, "
+                f"yaw = {self.yaw:.4f}, "
+                f"roll = {self.roll:.4f}")
     # __str__
 # Attitude
 
@@ -133,11 +132,11 @@ class LocationGlobal:
 
     Example:
     ```python
-    # A global location object with altitude 30 metres above sea level
-    location = LocationGlobal(-34.364114, 149.166022, 30)
-    
-    # Accesss and print a vehicle's global relative frame value
-    print(vehicle.location.global_frame)
+        # A global location object with altitude 30 metres above sea level
+        location = LocationGlobal(-34.364114, 149.166022, 30)
+        
+        # Accesss and print a vehicle's global relative frame value
+        print(vehicle.location.global_frame)
     ```
 
     An object of this type is owned by `Vehicle.location`. See that class for information on
@@ -165,10 +164,10 @@ class LocationGlobal:
     global_frame: Any | None = field(default=None, init=False)
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                lat = {self.lat}, 
-                lon = {self.lon}, 
-                alt = {self.alt}")
+        return (f"{self.__class__.__name__}: "
+                f"lat = {self.lat}, "
+                f"lon = {self.lon}, "
+                f"alt = {self.alt}")
     # __str__
 # LocationGlobal
 
@@ -185,11 +184,11 @@ class LocationGlobalRelative:
 
     Example:
     ```python
-    # A location 30 metres above the home location
-    location = LocationGlobalRelative(-34.364114, 149.166022, 30)
-    
-    # Accesss and print a vehicle's global relative frame value
-    print(vehicle.location.global_relative_frame)
+        # A location 30 metres above the home location
+        location = LocationGlobalRelative(-34.364114, 149.166022, 30)
+        
+        # Accesss and print a vehicle's global relative frame value
+        print(vehicle.location.global_relative_frame)
     ```
 
     An object of this type is owned by `Vehicle.location`. See that class for information on
@@ -217,10 +216,10 @@ class LocationGlobalRelative:
     global_frame: Any | None = field(default=None, init=False)
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                lat = {self.lat}, 
-                lon = {self.lon}, 
-                alt = {self.alt}")
+        return (f"{self.__class__.__name__}: "
+                f"lat = {self.lat}, "
+                f"lon = {self.lon}, "
+                f"alt = {self.alt}")
     # __str__
 # LocationGlobalRelative
 
@@ -253,10 +252,10 @@ class LocationLocal:
 
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                north = {self.north}, 
-                east = {self.east}, 
-                down = {self.down}")
+        return (f"{self.__class__.__name__}: "
+                f"north = {self.north}, "
+                f"east = {self.east}, "
+                f"down = {self.down}")
     # __str__
 
 
@@ -311,9 +310,9 @@ class GPSInfo:
 
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                fix_type = {self.fix_type}, 
-                satellites_visible = {self.satellites_visible}")
+        return (f"{self.__class__.__name__}: "
+                f"fix_type = {self.fix_type}, "
+                f"satellites_visible = {self.satellites_visible}")
     # __str__
 # GPSInfo
 
@@ -342,10 +341,10 @@ class Wind:
     
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                direction = {self.wind_direction}°, 
-                speed = {self.wind_speed}m/s, 
-                vertical_speed = {self.wind_speed_z}m/s")
+        return (f"{self.__class__.__name__}: "
+                f"direction = {self.wind_direction}°, "
+                f"speed = {self.wind_speed}m/s, "
+                f"vertical_speed = {self.wind_speed_z}m/s")
     # __str__
 # Wind
 
@@ -375,10 +374,10 @@ class Battery:
 
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                voltage = {self.voltage}, 
-                current = {self.current}, 
-                level = {self.level}")
+        return (f"{self.__class__.__name__}: "
+                f"voltage = {self.voltage}, "
+                f"current = {self.current}, "
+                f"level = {self.level}")
     # __str__
 # Battery
 
@@ -403,9 +402,9 @@ class Rangefinder:
 
 
     def __str__(self) -> str:
-        return (f"{self.__class__.__name__}: 
-                distance = {self.distance}m, 
-                voltage = {self.voltage}V")
+        return (f"{self.__class__.__name__}: "
+                f"distance = {self.distance}m, "
+                f"voltage = {self.voltage}V")
     # __str__
 # Rangefinder
 
@@ -540,8 +539,8 @@ class Version:
         else:
             release_type = f"-{self.release_type()}{self.release_version()}"
 
-        return (f"{self.__class__.__name__}: 
-                {prefix}{self.major}.{self.minor}.{self.patch}{release_type}")
+        return (f"{self.__class__.__name__}: "
+                f"{prefix}{self.major}.{self.minor}.{self.patch}{release_type}")
     # __str__
 # Version
 
@@ -621,19 +620,19 @@ class VehicleMode:
     The code snippet below shows how to observe changes to the mode and then read the value:
 
     ```python
-    # Callback definition for mode observer
-    def mode_callback(self, attr_name: str) -> None:
-        print(f"Vehicle Mode: {self.mode}")
+        # Callback definition for mode observer
+        def mode_callback(self, attr_name: str) -> None:
+            print(f"Vehicle Mode: {self.mode}")
 
-    # Add observer callback for the mode attribute
-    vehicle.add_attribute_listener(attr_name='mode', observer=mode_callback)
+        # Add observer callback for the mode attribute
+        vehicle.add_attribute_listener(attr_name='mode', observer=mode_callback)
     ```
 
     The code snippet below shows how to change the vehicle mode to AUTO:
 
     ```python
-    # Set the vehicle into auto mode
-    vehicle.mode = VehicleMode("AUTO")
+        # Set the vehicle into auto mode
+        vehicle.mode = VehicleMode("AUTO")
     ```
 
     For more information on getting/setting/observing the `Vehicle.mode`
@@ -1471,7 +1470,7 @@ class Vehicle(HasObservers):
                 port = 0 if name == "RC_CHANNELS" else m.port
                 self._channels._update_channel(str(port * 8 + chnum), v)
 
-            for i in range(start=1, stop=(18 if name == "RC_CHANNELS" else 8) + 1):
+            for i in range(1, (18 if name == "RC_CHANNELS" else 8) + 1):
                 set_rc(chnum=i, v=getattr(m, f"chan{i}_raw"))
 
             self.notify_attribute_listeners('channels', self.channels)
@@ -2923,11 +2922,11 @@ class Vehicle(HasObservers):
         # Initialize data stream.
         if rate is not None:
             self._master.mav.request_data_stream_send(
-                target_system=0, 
-                target_component=0, 
-                stream_id=mavutil.mavlink.MAV_DATA_STREAM_ALL, 
-                rate=rate, 
-                messages=1
+                0, 
+                0, 
+                mavutil.mavlink.MAV_DATA_STREAM_ALL, 
+                rate, 
+                1
             )
 
         self.add_message_listener('HEARTBEAT', self.send_capabilities_request)
