@@ -34,8 +34,18 @@ from typing import Any
 from dataclasses import dataclass, field
 
 from pymavlink import mavutil, mavwp
-from pymavlink.dialects.v10 import ardupilotmega
+from pymavlink.dialects.v20 import ardupilotmega
 from dronekit.util import ErrprinterHandler
+
+
+
+
+
+"""
+TODO:
+- ARE YOU SURE THAT THE TYPE HINTS ARE CORRECT? E.G., FOR THE BATTERY CLASS, ARE VOLTS AND CURRENT REALLY INTS?
+- 
+"""
 
 
 
