@@ -51,6 +51,7 @@ cherrypy_conf = {
 
 
 class Drone(object):
+
     def __init__(self, server_enabled=True):
         self.gps_lock = False
         self.altitude = 30.0
@@ -65,6 +66,8 @@ class Drone(object):
 
         # Register observers
         self.vehicle.add_attribute_listener('location', self.location_callback)
+
+
 
     def launch(self):
         self._log("Waiting for location...")
@@ -85,9 +88,13 @@ class Drone(object):
         if self.webserver_enabled is True:
             self._run_server()
 
+
+
     def takeoff(self):
         self._log("Taking off")
         self.vehicle.simple_takeoff(30.0)
+
+
 
     def arm(self, value=True):
         if value:
@@ -98,6 +105,8 @@ class Drone(object):
         else:
             self._log("Disarming!")
             self.vehicle.armed = False
+
+
 
     def _run_server(self):
         # Start web server if enabled
@@ -113,6 +122,9 @@ http://localhost:8080/
 ''')
         cherrypy.engine.start()
 
+
+    # NOTE: THE .FORMAT METHOD IS ≡ TO F'STRING
+    # NOTE: THE POLLED MODE SHOULD BE THE CURRENT MODE, NOT THE TARGET MODE!
     def change_mode(self, mode):
         self._log("Changing to mode: {0}".format(mode))
 
@@ -120,6 +132,8 @@ http://localhost:8080/
         while self.vehicle.mode.name != mode:
             self._log('  ... polled mode: {0}'.format(mode))
             time.sleep(1)
+
+
 
     def goto(self, location, relative=None):
         self._log("Goto: {0}, {1}".format(location, self.altitude))
@@ -140,8 +154,11 @@ http://localhost:8080/
             )
         self.vehicle.flush()
 
+
+
     def get_location(self):
         return [self.current_location.lat, self.current_location.lon]
+
 
     def location_callback(self, vehicle, name, location):
         if location.global_relative_frame.alt is not None:
@@ -149,15 +166,18 @@ http://localhost:8080/
 
         self.current_location = location.global_relative_frame
 
+
     def _log(self, message):
         print("[DEBUG]: {0}".format(message))
 
 
 class Templates:
+
     def __init__(self, home_coords):
         self.home_coords = home_coords
         self.options = self.get_options()
         self.environment = Environment(loader=FileSystemLoader(local_path + '/html'))
+
 
     def get_options(self):
         return {'width': 670,
@@ -178,6 +198,7 @@ class Templates:
         self.options = self.get_options()
         self.options['current_url'] = '/'
         return self.get_template('index')
+
 
     def track(self, current_coords):
         self.options = self.get_options()

@@ -99,16 +99,18 @@ class Attitude:
     ---
     """
 
+    # Member variables
     pitch: float
     yaw: float
     roll: float
 
 
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
-                f"pitch = {self.pitch:.4f}, "
-                f"roll = {self.roll:.4f}, "
-                f"yaw = {self.yaw:.4f}")
+                f"pitch = {self.pitch:.4f}rads, "
+                f"roll = {self.roll:.4f}rads, "
+                f"yaw = {self.yaw:.4f}rads")
     # __str__
 # Attitude
 
@@ -147,20 +149,21 @@ class LocationGlobal:
     TODO: Location class - possibly add a vector3 representation.
     """
 
+    # Member variables
     lat: float
     lon: float
     alt: float | None = None
-    
-
     # For backward compatibility
     local_frame: Any | None = field(default=None, init=False)
     global_frame: Any | None = field(default=None, init=False)
 
+
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
                 f"lat = {self.lat}, "
                 f"lon = {self.lon}, "
-                f"alt = {self.alt}")
+                f"alt = {self.alt} meters")
     # __str__
 # LocationGlobal
 
@@ -199,20 +202,21 @@ class LocationGlobalRelative:
     TODO: Location class - possibly add a vector3 representation.
     """
 
+    # Member variables
     lat: float
     lon: float
     alt: float | None = None
-    
-
     # For backward compatibility
     local_frame: Any | None = field(default=None, init=False)
     global_frame: Any | None = field(default=None, init=False)
 
+
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
                 f"lat = {self.lat}, "
                 f"lon = {self.lon}, "
-                f"alt = {self.alt}")
+                f"alt = {self.alt} meters")
     # __str__
 # LocationGlobalRelative
 
@@ -239,11 +243,13 @@ class LocationLocal:
     ---
     """
 
+    # Member variables
     north: float
     east: float
     down: float
 
 
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
                 f"north = {self.north}, "
@@ -296,12 +302,14 @@ class GPSInfo:
     TODO: GPSInfo class - possibly normalize eph/epv?  report fix type as string?
     """
 
+    # Member variables
     eph: int | None
     epv: int | None
     fix_type: int | None
     satellites_visible: int | None
 
 
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
                 f"fix_type = {self.fix_type}, "
@@ -328,11 +336,13 @@ class Wind:
     ---
     """
 
+    # Member variables
     wind_direction: float
     wind_speed: float
     wind_speed_z: float
     
 
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
                 f"direction = {self.wind_direction}°, "
@@ -359,6 +369,7 @@ class Battery:
     ---
     """
 
+    # Member variables
     def __init__(self, voltage: int, current: int, level: int) -> None:
         self.voltage: float = (voltage / 1000.0)
         self.current: float | None = None if current == -1 else (current / 100.0)
@@ -366,11 +377,12 @@ class Battery:
     # __init__
 
 
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
-                f"voltage = {self.voltage}, "
-                f"current = {self.current}, "
-                f"level = {self.level}")
+                f"voltage = {self.voltage}mV, "
+                f"current = {self.current}mA, "
+                f"level = {self.level}%")
     # __str__
 # Battery
 
@@ -386,14 +398,16 @@ class Rangefinder:
     ---
 
     Attributes:
-        `distance`: Distance in metres. `None` if the vehicle doesn't have a rangefinder
+        `distance`: Distance in meters. `None` if the vehicle doesn't have a rangefinder
         `voltage`: Voltage in volts. `None` if the vehicle doesn't have a rangefinder
     """
 
+    # Member variables
     distance: float | None
     voltage: float | None
+    
 
-
+    # Member methods
     def __str__(self) -> str:
         return (f"{self.__class__.__name__}: "
                 f"distance = {self.distance}m, "
@@ -427,6 +441,8 @@ class Version:
     ---
     """
 
+
+    # Member variables
     raw_version: int | None
     autopilot_type: int
     vehicle_type: int
@@ -436,6 +452,7 @@ class Version:
     release: int | None = field(init=False)
 
 
+    # Member methods
     def __post_init__(self) -> None:
         if self.raw_version is None:
             self.major = None
@@ -452,7 +469,7 @@ class Version:
 
     def is_stable(self) -> bool:
         """
-        ### Check for afirmware stable release.
+        ### Check for a firmware stable release.
         
         ---
 
@@ -593,12 +610,12 @@ class VehicleMode:
     """
     ### Used to get and set the current vehicle flight mode.
 
-    The flight mode determines the behaviour of the vehicle and what commands it can obey.
+    The flight mode determines the behavior of the vehicle and what commands it can obey.
     The recommended flight modes for DroneKit-Python apps depend on the vehicle type:
 
     - Copter apps should use `AUTO` mode for normal waypoint missions and `GUIDED` mode otherwise.
     - Plane and Rover apps should use the `AUTO` mode in all cases, re-writing the mission commands if dynamic
-      behaviour is required (they support only a limited subset of commands in `GUIDED` mode).
+      behavior is required (they support only a limited subset of commands in `GUIDED` mode).
     - Some modes like `RETURN_TO_LAUNCH` can be used on all platforms. Care should be taken
       when using manual modes as these may require remote control input from the user. 
 
@@ -625,7 +642,7 @@ class VehicleMode:
 
     ```python
         # Set the vehicle into auto mode
-        vehicle.mode = VehicleMode("AUTO")
+        vehicle.mode = VehicleMode('AUTO')
     ```
 
     For more information on getting/setting/observing the `Vehicle.mode`
@@ -639,9 +656,12 @@ class VehicleMode:
     ---
     """
     
+
+    # Member variables
     name: str
 
 
+    # Member methods
     def __str__(self) -> str:
         return f"{self.__class__.__name__}: {self.name}"
     # __str__
@@ -673,8 +693,13 @@ class SystemStatus:
 
     ---
     """
+
+
+    # Member variables
     state: str
 
+
+    # Member methods
     def __str__(self) -> str:
         return f"{self.__class__.__name__}: {self.state}"
     # __str__
@@ -692,7 +717,7 @@ class SystemStatus:
 
 
 
-# Because observers have the following arg list and do not return anything.
+# Since observers have the following arg list and do not return anything.
 # The Vehicle class type hint is in quotes to forward declare the class.
 Observer = Callable[['Vehicle', str, Any], None]
 
@@ -703,6 +728,8 @@ class HasObservers:
     Provides methods to add, remove, and notify listeners when attributes change.
     """
 
+
+    # Member methods
     def __init__(self) -> None:
         logging.basicConfig()
         self._logger: logging.Logger = logging.getLogger(name=__name__)
@@ -819,6 +846,7 @@ class HasObservers:
         if cache:
             if self._attribute_cache.get(attr_name) == value:
                 return
+            # O/w, if changed, update
             self._attribute_cache[attr_name] = value
 
         # Notify observers.
@@ -929,6 +957,7 @@ class ChannelsOverride(dict):
 
 
     def __setitem__(self, key: str, value: Any) -> None:
+        # This is ArduPilot's channels numerical values 1-8
         if not (0 < int(key) <= self._count):
             raise KeyError('Invalid channel index %s' % key)
         if not value:
@@ -985,6 +1014,8 @@ class Channels(dict):
     def __init__(self, vehicle: 'Vehicle', count: int) -> None:
         self._vehicle = vehicle
         self._count = count
+        # Since the ChannelsOverride class is derived from the dict class,
+        # this initialization creates our dictionary automatically!
         self._overrides = ChannelsOverride(vehicle)
 
         # Populate readback
@@ -1271,8 +1302,7 @@ class Vehicle(HasObservers):
 
     Vehicle state is exposed through attributes (e.g., `heading`). All attributes can be read, and some are also settable (e.g., `mode`, `armed`, and `home_location`).
 
-    Attributes can also be asynchronously monitored for changes by registering listener callback
-    functions.
+    Attributes can also be asynchronously monitored for changes by registering listener callback functions.
 
     Vehicle settings (i.e., parameters like `AUTOTUNE_AXES` and `PLND_ENABLED`) are read/set using the `parameters` attribute.
     Parameters can be iterated and are also individually observable.
@@ -1308,8 +1338,12 @@ class Vehicle(HasObservers):
     def __init__(self, handler: Any) -> None:
         super(Vehicle, self).__init__()
 
-        self._logger = logging.getLogger(__name__)  # Logger for DroneKit
-        self._autopilot_logger = logging.getLogger('autopilot')  # Logger for the autopilot messages
+        # Logger for DroneKit
+        self._logger = logging.getLogger(__name__)
+        
+        # Logger for the autopilot messages
+        self._autopilot_logger = logging.getLogger('autopilot')
+
         # MAVLink-to-logging-module log severity mappings
         self._mavlink_statustext_severity = {
             0: logging.CRITICAL,
@@ -1346,6 +1380,7 @@ class Vehicle(HasObservers):
 
         # Establish listeners for, and initialize, the default attributes.
 
+        # Status attribute
         @self.on_message('STATUSTEXT')
         def statustext_listener(self, name: str, m: Any) -> None:
             # Log the STATUSTEXT on the autopilot logger, with the correct severity
@@ -1355,6 +1390,7 @@ class Vehicle(HasObservers):
             )
 
 
+        # Wind attribute
         self._wind_direction: float | None = None
         self._wind_speed: float | None = None
         self._wind_speed_z: float | None = None
@@ -1367,6 +1403,7 @@ class Vehicle(HasObservers):
             self._wind_speed_z = m.speed_z
 
 
+        # Location attribute
         self._location = Locations(self)
         self._vx: float | None = None
         self._vy: float | None = None
@@ -1378,6 +1415,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('velocity', self.velocity)
 
 
+        # Attitude attribute
         self._pitch: float | None = None
         self._yaw: float | None = None
         self._roll: float | None = None
@@ -1396,6 +1434,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('attitude', self.attitude)
 
 
+        # Visual flight rules heads-up display (VFR HUD) attribute
         self._heading: int | None = None
         self._airspeed: float | None = None
         self._groundspeed: float | None = None
@@ -1410,6 +1449,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('groundspeed', self.groundspeed)
 
 
+        # Rangefinder attribute
         self._rngfnd_distance: float | None = None
         self._rngfnd_voltage: float | None = None
 
@@ -1420,6 +1460,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('rangefinder', self.rangefinder)
 
 
+        # Mount (e.g., cam gimbal or antenna tracker) attribute
         self._mount_pitch: float | None = None
         self._mount_yaw: float | None = None
         self._mount_roll: float | None = None
@@ -1432,6 +1473,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('mount', self.mount_status)
 
 
+        # AutoPilot version attribute
         self._capabilities: int | None = None
         self._raw_version: int | None = None
         self._autopilot_version_msg_count: int = 0
@@ -1449,9 +1491,11 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('autopilot_version', self._raw_version)
 
 
-        # gimbal
+        # Gimbal attribute
         self._gimbal = Gimbal(self)
 
+
+        # RC channels attribute
         # All keys are strings.
         self._channels = Channels(self, 8)
 
@@ -1469,6 +1513,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('channels', self.channels)
 
 
+        # System status attribute
         self._voltage: int | None = None
         self._current: int | None = None
         self._level: int | None = None
@@ -1481,6 +1526,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('battery', self.battery)
 
 
+        # GPS attribute
         # TODO: support multiple GPSs per vehicle - possibly by using componentId
         self._eph: int | None = None
         self._epv: int | None = None
@@ -1496,6 +1542,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('gps_0', self.gps_0)
 
 
+        # Current Single Waypoint/Mission attribute
         self._current_waypoint: int = 0
 
         @self.on_message(['WAYPOINT_CURRENT', 'MISSION_CURRENT'])
@@ -1503,6 +1550,7 @@ class Vehicle(HasObservers):
             self._current_waypoint = m.seq
 
 
+        # EKF attribute
         self._ekf_poshorizabs: bool = False
         self._ekf_constposmode: bool = False
         self._ekf_predposhorizabs: bool = False
@@ -1518,6 +1566,7 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('ekf_ok', self.ekf_ok, cache=True)
 
 
+        # Heartbeat attribute
         self._flightmode: str = 'AUTO'
         self._armed: bool = False
         self._system_status: int | None = None
@@ -1547,8 +1596,7 @@ class Vehicle(HasObservers):
 
 
 
-        # Waypoints.
-
+        # Waypoint/Mission attribute
         self._home_location: LocationGlobal | None = None
         self._wploader = mavwp.MAVWPLoader()
         self._wp_loaded: bool = True
@@ -1607,8 +1655,7 @@ class Vehicle(HasObservers):
 
 
 
-        # Parameters.
-
+        # Parameters attribute
         start_duration = 0.2
         repeat_duration = 1
 
@@ -2211,7 +2258,7 @@ class Vehicle(HasObservers):
     @property
     def is_armable(self) -> bool:
         """
-        ### Returns `True` if the vehicle is ready to arm, false otherwise (`Boolean`).
+        ### Returns `True` if the vehicle is ready to arm, false otherwise (`boolean`).
 
         This attribute wraps a number of pre-arm checks, ensuring that the vehicle has booted,
         has a good GPS fix, and that the EKF pre-arm is complete.
@@ -2256,7 +2303,7 @@ class Vehicle(HasObservers):
     @property
     def heading(self) -> int | None:
         """
-        ### Current heading in degrees - 0..360°, where North = 0° (`int`).
+        ### Current heading in degrees ([0°, 360°]) | North ≡ 0° (`int`).
         """
         return self._heading
     # heading
@@ -2265,7 +2312,7 @@ class Vehicle(HasObservers):
     @property
     def groundspeed(self) -> float | None:
         """
-        ### Current groundspeed in metres/second (`double`).
+        ### Current groundspeed in meters/second (`float`).
 
         This attribute is settable. The set value is the default target groundspeed
         when moving the vehicle using `simple_goto` (or other position-based
@@ -2277,13 +2324,13 @@ class Vehicle(HasObservers):
 
     @groundspeed.setter
     def groundspeed(self, speed: float) -> None:
-        speed_type = 1  # ground speed
+        speed_type = 1  # groundspeed
         msg = self.message_factory.command_long_encode(
             0, 0,                                       # target system, target component
             mavutil.mavlink.MAV_CMD_DO_CHANGE_SPEED,    # command
             0,                                          # confirmation
             speed_type,                                 # param 1
-            speed,                                      # speed in metres/second
+            speed,                                      # m/s
             -1, 0, 0, 0, 0                              # param 3 - 7
         )
 
@@ -2295,7 +2342,7 @@ class Vehicle(HasObservers):
     @property
     def airspeed(self) -> float | None:
         """
-        ### Current airspeed in metres/second (`double`).
+        ### Current airspeed in meters/second (`float`).
 
         This attribute is settable. The set value is the default target airspeed
         when moving the vehicle using `simple_goto` (or other position-based
@@ -2307,13 +2354,13 @@ class Vehicle(HasObservers):
 
     @airspeed.setter
     def airspeed(self, speed: float) -> None:
-        speed_type = 0  # air speed
+        speed_type = 0  # airspeed
         msg = self.message_factory.command_long_encode(
             0, 0,                                       # target system, target component
             mavutil.mavlink.MAV_CMD_DO_CHANGE_SPEED,    # command
             0,                                          # confirmation
             speed_type,                                 # param 1
-            speed,                                      # speed in metres/second
+            speed,                                      # m/s
             -1, 0, 0, 0, 0                              # param 3 - 7
         )
 
@@ -2458,14 +2505,18 @@ class Vehicle(HasObservers):
         # Set cached home location.
         self._home_location = copy.copy(pos)
 
-        # Send MAVLink update.
-        self.send_mavlink(self.message_factory.command_long_encode(
+        # create the MAVLink update message.
+        msg = self.message_factory.command_long_encode(
             0, 0,                                   # target system, target component
             mavutil.mavlink.MAV_CMD_DO_SET_HOME,    # command
             0,                                      # confirmation
-            0,          # param 1: 1 to use current position, 0 to use the entered values.
-            0, 0, 0,    # params 2-4
-            pos.lat, pos.lon, pos.alt))
+            0,                                      # param 1: 1 ≡ current position, 0 ≡ entered values.
+            0, 0, 0,                                # params 2-4
+            pos.lat, pos.lon, pos.alt               # params 5-7
+        )
+
+        # send command to vehicle
+        self.send_mavlink(msg)
     # home_location.setter
 
 
@@ -2496,8 +2547,13 @@ class Vehicle(HasObservers):
     # parameters
 
 
-    def wait_for(self, condition: Callable[[], bool], timeout: float | None = None, 
-                 interval: float = 0.1, errmsg: str | None = None) -> None:
+    def wait_for(
+        self, 
+        condition: Callable[[], bool], 
+        timeout: float | None = None, 
+        interval: float = 0.1, 
+        errmsg: str | None = None
+    ) -> None:
         """
         ### Wait for a condition to be True.
 
@@ -2520,7 +2576,7 @@ class Vehicle(HasObservers):
         t0 = time.time()
         while not condition():
             t1 = time.time()
-            if timeout and (t1 - t0) >= timeout:
+            if timeout and ((t1 - t0) >= timeout):
                 raise TimeoutError(errmsg)
 
             time.sleep(interval)
@@ -2625,8 +2681,13 @@ class Vehicle(HasObservers):
     # wait_for_mode
 
 
-    def wait_for_alt(self, alt: float, epsilon: float = 0.1, rel: bool = True, 
-                     timeout: float | None = None) -> None:
+    def wait_for_alt(
+        self, 
+        alt: float, 
+        epsilon: float = 0.1, 
+        rel: bool = True, 
+        timeout: float | None = None
+    ) -> None:
         """
         ### Wait for the vehicle to reach the specified altitude.
 
@@ -2676,8 +2737,12 @@ class Vehicle(HasObservers):
     # wait_for_alt
 
 
-    def wait_simple_takeoff(self, alt: float | None = None, epsilon: float = 0.1, 
-                           timeout: float | None = None) -> None:
+    def wait_simple_takeoff(
+        self, 
+        alt: float | None = None, 
+        epsilon: float = 0.1, # within 10%
+        timeout: float | None = None
+    ) -> None:
         """
         ### Take off and wait to reach target altitude.
 
@@ -2734,13 +2799,22 @@ class Vehicle(HasObservers):
             altitude = float(alt)
             if math.isnan(altitude) or math.isinf(altitude):
                 raise ValueError("Altitude was NaN or Infinity. Please provide a real number")
-            self._master.mav.command_long_send(0, 0, mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
-                                               0, 0, 0, 0, 0, 0, 0, altitude)
+            self._master.mav.command_long_send(
+                0, 
+                0, 
+                mavutil.mavlink.MAV_CMD_NAV_TAKEOFF,
+                0, 0, 0, 0, 0, 0, 0, 
+                altitude
+            )
     # simple_takeoff
 
 
-    def simple_goto(self, location: LocationGlobal | LocationGlobalRelative, 
-                    airspeed: float | None = None, groundspeed: float | None = None) -> None:
+    def simple_goto(
+        self, 
+        location: LocationGlobal | LocationGlobalRelative, 
+        airspeed: float | None = None, 
+        groundspeed: float | None = None
+    ) -> None:
         """
         ### Go to a specified global location (`LocationGlobal` or `LocationGlobalRelative`).
 
@@ -2789,8 +2863,11 @@ class Vehicle(HasObservers):
 
         self._master.mav.mission_item_send(
             0, 0, 0, frame,
-            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 2, 0, 0,
-            0, 0, 0, location.lat, location.lon,
+            mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 
+            2, 0, 0,
+            0, 0, 0, 
+            location.lat, 
+            location.lon,
             alt
         )
 
@@ -2875,7 +2952,11 @@ class Vehicle(HasObservers):
     # message_factory
 
 
-    def initialize(self, rate: int | None = 4, heartbeat_timeout: int = 30) -> None:
+    def initialize(
+        self, 
+        rate: int | None = 4, 
+        heartbeat_timeout: int = 30
+    ) -> None:
         """
         ### Initialize the main vehicle connection.
 
