@@ -44,6 +44,7 @@ from dronekit.util import ErrprinterHandler
 """
 TODO:
 - ARE YOU SURE THAT THE TYPE HINTS ARE CORRECT? E.G., FOR THE BATTERY CLASS, ARE VOLTS AND CURRENT REALLY INTS?
+- CREATE AN ENUM CLASS OR MAP FOR THE ATTRIBUTE, PROPERTY, AND PARAMETER NAMES, E.G., 'RANGEFINDER' = 0, ATTITUDE = 1, ETC.
 - 
 """
 
@@ -134,8 +135,7 @@ class LocationGlobal:
         print(vehicle.location.global_frame)
     ```
 
-    An object of this type is owned by `Vehicle.location`. See that class for information on
-    reading and observing location in the global frame.
+    An object of this type is owned by `Vehicle.location`. See that class for information on reading and observing location in the global frame.
 
     ---
 
@@ -187,8 +187,7 @@ class LocationGlobalRelative:
         print(vehicle.location.global_relative_frame)
     ```
 
-    An object of this type is owned by `Vehicle.location`. See that class for information on
-    reading and observing location in the global-relative frame.
+    An object of this type is owned by `Vehicle.location`. See that class for information on reading and observing location in the global-relative frame.
 
     ---
 
@@ -227,11 +226,9 @@ class LocationLocal:
     """
     ### A local location object.
 
-    The north, east and down are relative to the EKF origin. This is most likely the location 
-    where the vehicle was turned on.
+    The north, east and down are relative to the EKF origin. This is most likely the location where the vehicle was turned on.
 
-    An object of this type is owned by `Vehicle.location`. See that class for information on
-    reading and observing location in the local frame.
+    An object of this type is owned by `Vehicle.location`. See that class for information on reading and observing location in the local frame.
 
     ---
 
@@ -400,6 +397,8 @@ class Rangefinder:
     Attributes:
         `distance`: Distance in meters. `None` if the vehicle doesn't have a rangefinder
         `voltage`: Voltage in volts. `None` if the vehicle doesn't have a rangefinder
+
+    ---
     """
 
     # Member variables
@@ -474,8 +473,7 @@ class Version:
         ---
 
         Returns:
-            `True` if the autopilot reports that the current firmware is an official stable
-            release (not a pre-release or development version).
+            `True` if the autopilot reports that the current firmware is an official stable release (not a pre-release or development version).
 
         ---
         """
@@ -614,10 +612,8 @@ class VehicleMode:
     The recommended flight modes for DroneKit-Python apps depend on the vehicle type:
 
     - Copter apps should use `AUTO` mode for normal waypoint missions and `GUIDED` mode otherwise.
-    - Plane and Rover apps should use the `AUTO` mode in all cases, re-writing the mission commands if dynamic
-      behavior is required (they support only a limited subset of commands in `GUIDED` mode).
-    - Some modes like `RETURN_TO_LAUNCH` can be used on all platforms. Care should be taken
-      when using manual modes as these may require remote control input from the user. 
+    - Plane and Rover apps should use the `AUTO` mode in all cases, re-writing the mission commands if dynamic behavior is required (they support only a limited subset of commands in `GUIDED` mode).
+    - Some modes like `RETURN_TO_LAUNCH` can be used on all platforms. Care should be taken when using manual modes as these may require remote control input from the user. 
 
     The available set of supported modes is vehicle-specific, e.g., see:
     - [Copter Modes](https://ardupilot.org/copter/docs/flight-modes.html)
@@ -645,8 +641,7 @@ class VehicleMode:
         vehicle.mode = VehicleMode('AUTO')
     ```
 
-    For more information on getting/setting/observing the `Vehicle.mode`
-    (and other attributes) see the [Vehicle State and Settings Guide](https://dronekit.netlify.app/guide/vehicle_state_and_parameters).
+    For more information on getting/setting/observing the `Vehicle.mode` (and other attributes) see the [Vehicle State and Settings Guide](https://dronekit.netlify.app/guide/vehicle_state_and_parameters).
 
     ---
 
@@ -745,10 +740,8 @@ class HasObservers:
         ### Add an attribute listener callback.
 
         - The callback function (`observer`) is invoked differently depending on the type of attribute.
-        - Attributes that represent sensor values or which are used to monitor connection status are 
-            updated whenever a message is received from the vehicle. 
-        - Attributes which reflect vehicle state are only updated when their values change 
-            (for example `Vehicle.system_status`, `Vehicle.armed`, and `Vehicle.mode`).
+        - Attributes that represent sensor values or which are used to monitor connection status are updated whenever a message is received from the vehicle. 
+        - Attributes which reflect vehicle state are only updated when their values change (for example `Vehicle.system_status`, `Vehicle.armed`, and `Vehicle.mode`).
 
         The callback can be removed using `remove_attribute_listener`.
 
@@ -765,10 +758,8 @@ class HasObservers:
 
         The argument list for the callback is `observer(object, attr_name, attribute_value)`:
 
-            `self`: the associated `Vehicle`. This may be compared to a global vehicle handle to implement 
-                vehicle-specific callback handling (if needed).
-            `attr_name`: the attribute name. This can be used to infer which attribute has triggered if 
-                the same callback is used for watching several attributes.
+            `self`: the associated `Vehicle`. This may be compared to a global vehicle handle to implement vehicle-specific callback handling (if needed).
+            `attr_name`: the attribute name. This can be used to infer which attribute has triggered if the same callback is used for watching several attributes.
             `attribute_value`: the attribute value (so you don't need to re-query the vehicle object).
 
         ---
@@ -791,11 +782,11 @@ class HasObservers:
 
         """
         listeners_for_attr = self._attribute_listeners.get(attr_name)
-        if listeners_for_attr is None:
-            listeners_for_attr = []
+        if listeners_for_attr is None:  # if this is the first time the attr is being added
+            listeners_for_attr = []     # create a list for it
             self._attribute_listeners[attr_name] = listeners_for_attr
-        if observer not in listeners_for_attr:
-            listeners_for_attr.append(observer)
+        if observer not in listeners_for_attr:  # if the observer callback isnt in the list yet
+            listeners_for_attr.append(observer) # add it
     # add_attribute_listener
 
 
@@ -1138,8 +1129,7 @@ class Locations(HasObservers):
 
     Sets up listeners for the global and local position messages.
 
-    `Vehicle` owns an object of this type. See `Vehicle.location` for information on
-    reading and observing location in the different frames.
+    `Vehicle` owns an object of this type. See `Vehicle.location` for information on reading and observing location in the different frames.
 
     The different frames are accessed through the members, which are created with this object.
     They can be read, and are observable.
@@ -1401,6 +1391,7 @@ class Vehicle(HasObservers):
             self._wind_direction = m.direction
             self._wind_speed = m.speed
             self._wind_speed_z = m.speed_z
+            self.notify_attribute_listeners('wind', self.wind)
 
 
         # Location attribute
@@ -1449,6 +1440,10 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('groundspeed', self.groundspeed)
 
 
+        # NOTE: HERE WE SEE HOW THE OBSERVERS ARE UTILIZED. AN OBSERVER CALLED LISTENER IS CREATED AFTER A RANGEFINDER MESSAGE COMES IN, AND IT JUST UPDATES THE RANGEFINDER MEMBER COMPONENTS. NOTICE HOW THE ADD_ATTRIBUTE_LISTENERS WAS NEVER POPULATED OR CALLED, ONLY NOTIFY IS CALLED. ∴ THIS IS SETUP AS AN INITIALIZER, SO IT SETS OUR VALUES AND MEMBERS ONCE, AND THATS IT. NOW, IF YOU WANT IT TO KEEP REPORTING THE RANGEFINDER VALUES, YOU HAVE TO CREATE AND ADD YOUR OWN!!
+        
+        # NOTE: ARE THESE PRIVATE VARIABLES STORED OR THROWN AWAY? IF THE FORMER, THEN DONT WE ALWAYS KEEP TWO COPIES OF EVERYTHING, SINCE WE HAVE THE ONES HERE, AND THEN THE ONES IN THE CORRESPONDING CLASS?? 
+         
         # Rangefinder attribute
         self._rngfnd_distance: float | None = None
         self._rngfnd_voltage: float | None = None
@@ -1457,6 +1452,7 @@ class Vehicle(HasObservers):
         def listener(self, name: str, m: Any) -> None:
             self._rngfnd_distance = m.distance
             self._rngfnd_voltage = m.voltage
+            # NOTE: NOTIFY THE RANGEFINDER CLASS OF OUR INIT READ.
             self.notify_attribute_listeners('rangefinder', self.rangefinder)
 
 
@@ -2144,9 +2140,14 @@ class Vehicle(HasObservers):
         """
         ### Current wind status (`Wind`)
         """
-        if self._wind_direction is None or self._wind_speed is None or self._wind_speed_z is None:
+        if (self._wind_direction is None or self._wind_speed is None or self._wind_speed_z is None):
             return None
-        return Wind(self._wind_direction, self._wind_speed, self._wind_speed_z)
+        
+        return Wind(
+            wind_direction=self._wind_direction, 
+            wind_speed=self._wind_speed, 
+            wind_speed_z=self._wind_speed_z
+        )
     # wind
 
 
@@ -2166,6 +2167,7 @@ class Vehicle(HasObservers):
         """
         ### Rangefinder distance and voltage values (`Rangefinder`).
         """
+        # Send the Vehicle class private members to the Rangefinder class
         return Rangefinder(self._rngfnd_distance, self._rngfnd_voltage)
     # rangefinder
 
@@ -2260,8 +2262,7 @@ class Vehicle(HasObservers):
         """
         ### Returns `True` if the vehicle is ready to arm, false otherwise (`boolean`).
 
-        This attribute wraps a number of pre-arm checks, ensuring that the vehicle has booted,
-        has a good GPS fix, and that the EKF pre-arm is complete.
+        This attribute wraps a number of pre-arm checks, ensuring that the vehicle has booted, has a good GPS fix, and that the EKF pre-arm is complete.
         """
         # check that mode is not INITIALSING
         # check that we have a GPS fix
@@ -2486,8 +2487,7 @@ class Vehicle(HasObservers):
         """
         ### Sets the home location (`LocationGlobal`).
 
-        The value cannot be set until it has successfully been read from the vehicle. After being
-        set the value is cached in the home_location attribute and does not have to be re-read.
+        The value cannot be set until it has successfully been read from the vehicle. After being set the value is cached in the home_location attribute and does not have to be re-read.
 
         ---
 
@@ -4063,27 +4063,28 @@ def default_still_waiting_callback(atts: set[str]) -> None:
 
 
 
-def connect(ip: str,
-            _initialize: bool = True,
-            wait_ready: bool | list[str] | None = None,
-            timeout: float = 30,
-            still_waiting_callback: Callable[[set[str]], None] = default_still_waiting_callback,
-            still_waiting_interval: float = 1,
-            status_printer: Callable[[str], None] | None = None,
-            vehicle_class: type[Vehicle] | None = None,
-            rate: int = 4,
-            baud: int = 115200,
-            heartbeat_timeout: int = 30,
-            source_system: int = 255,
-            source_component: int = 0,
-            use_native: bool = False) -> Vehicle:
+def connect(
+    ip: str,
+    _initialize: bool = True,
+    wait_ready: bool | list[str] | None = None,
+    timeout: float = 30,
+    still_waiting_callback: Callable[[set[str]], None] = default_still_waiting_callback,
+    still_waiting_interval: float = 1,
+    status_printer: Callable[[str], None] | None = None,
+    vehicle_class: type[Vehicle] | None = None,
+    rate: int = 4,
+    baud: int = 115200,
+    heartbeat_timeout: int = 30,
+    source_system: int = 255,
+    source_component: int = 0,
+    use_native: bool = False
+) -> Vehicle:
     """
     ### Returns a `Vehicle` object connected to the address specified by string parameter `ip`.
     
     Connection string parameters (`ip`) for different targets are listed in the [Getting Started Guide](https://dronekit.netlify.app/guide/connecting_vehicle).
 
-    The method is usually called with `wait_ready=True` to ensure that vehicle parameters and (most) attributes are
-    available when `connect()` returns.
+    The method is usually called with `wait_ready=True` to ensure that vehicle parameters and (most) attributes are available when `connect()` returns.
 
     ```python
         from dronekit import connect
@@ -4096,20 +4097,12 @@ def connect(ip: str,
 
     Args:
         `ip`: Connection string for target address - e.g. 127.0.0.1:14550.
-        `wait_ready`: If `True` wait until all default attributes have downloaded before
-            the method returns (default is `None`).
-            The default attributes to wait on are: `parameters`, `gps_0`,
-            `armed`, `mode`, and `attitude`.
-            You can also specify a named set of parameters to wait on (e.g. `wait_ready=['system_status','mode']`).
-        `status_printer`: (deprecated) method of signature `def status_printer(txt)` that prints
-            STATUS_TEXT messages from the Vehicle and other diagnostic information.
-            By default the status information is handled by the `autopilot` logger.
-        `vehicle_class`: The class that will be instantiated by the `connect()` method.
-            This can be any sub-class of `Vehicle` (and defaults to `Vehicle`).
+        `wait_ready`: If `True` wait until all default attributes have downloaded before the method returns (default is `None`). The default attributes to wait on are: `parameters`, `gps_0`, `armed`, `mode`, and `attitude`. You can also specify a named set of parameters to wait on (e.g. `wait_ready=['system_status','mode']`).
+        `status_printer`: (deprecated) method of signature `def status_printer(txt)` that prints STATUS_TEXT messages from the Vehicle and other diagnostic information. By default the status information is handled by the `autopilot` logger.
+        `vehicle_class`: The class that will be instantiated by the `connect()` method. This can be any sub-class of `Vehicle` (and defaults to `Vehicle`).
         `rate`: Data stream refresh rate. The default is 4Hz (4 updates per second).
         `baud`: The baud rate for the connection. The default is 115200.
-        `heartbeat_timeout`: Connection timeout value in seconds (default is 30s).
-            If a heartbeat is not detected within this time an exception will be raised.
+        `heartbeat_timeout`: Connection timeout value in seconds (default is 30s). If a heartbeat is not detected within this time an exception will be raised.
         `source_system`: The MAVLink ID of the `Vehicle` object returned by this method (by default 255).
         `source_component`: The MAVLink Component ID fo the `Vehicle` object returned by this method (by default 0).
         `use_native`: Use precompiled MAVLink parser.
@@ -4119,16 +4112,12 @@ def connect(ip: str,
     📝
     #### NOTE:
 
-        The returned `Vehicle` object acts as a ground control station from the
-        perspective of the connected "real" vehicle. It will process/receive messages from the real vehicle
-        if they are addressed to this `source_system` id. Messages sent to the real vehicle are
-        automatically updated to use the vehicle's `target_system` id.
+        The returned `Vehicle` object acts as a ground control station from the perspective of the connected "real" vehicle. It will process/receive messages from the real vehicle if they are addressed to this `source_system` id. Messages sent to the real vehicle are automatically updated to use the vehicle's `target_system` id.
 
         It is good practice to assign a unique id for every system on the MAVLink network.
         It is possible to configure the autopilot to only respond to guided-mode commands from a specified GCS ID.
 
-        The `status_printer` argument is deprecated. To redirect the logging from the library and from the
-        autopilot, configure the `dronekit` and `autopilot` loggers using the Python `logging` module.
+        The `status_printer` argument is deprecated. To redirect the logging from the library and from the autopilot, configure the `dronekit` and `autopilot` loggers using the Python `logging` module.
 
     ---
 
