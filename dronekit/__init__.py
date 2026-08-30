@@ -781,9 +781,10 @@ class HasObservers:
             `observer`: The callback to invoke when a change in the attribute is detected.
 
         """
+        # Grab any callback methods associated with the attribute name
         listeners_for_attr = self._attribute_listeners.get(attr_name)
         if listeners_for_attr is None:  # if this is the first time the attr is being added
-            listeners_for_attr = []     # create a list for it
+            listeners_for_attr = []     # create a list for it, and map it to it
             self._attribute_listeners[attr_name] = listeners_for_attr
         if observer not in listeners_for_attr:  # if the observer callback isnt in the list yet
             listeners_for_attr.append(observer) # add it
@@ -818,9 +819,13 @@ class HasObservers:
 
     def notify_attribute_listeners(self, attr_name: str, value: Any, cache: bool = False) -> None:
         """
-        ### This method is used to update attribute observers when the named attribute is updated.
+        ### ⚙️ Updates attribute observers when the named attribute is updated.
 
-        You should call it in your message listeners after updating an attribute with information from a vehicle message.
+        ---
+
+        ⚠️ You should call it in your message listeners after updating an attribute with information from a vehicle message.
+
+        ---
 
         By default the value of `cache` is `False` and every update from the vehicle is sent to listeners (whether or not the attribute has changed). This is appropriate for attributes which represent sensor or heartbeat-type monitoring.
 
@@ -840,13 +845,16 @@ class HasObservers:
             # O/w, if changed, update
             self._attribute_cache[attr_name] = value
 
-        # Notify observers.
+        # NOTE: ON BOOT UP, WHEN THE VERY FIRST RANGEFINDER MSG COMES IN AND THE NOTIFY METHOD IS CALLED WITH THE RANGEFINDER OBJECT AS value, THEN THE .get METHOD BELOW WILL NOT FIND THE rangefinder ATTR_NAME KEY, SO SINCE THE KEY IS MISSING, THE EMPTY LIST OF CALLBACKS WILL BE RETURNED '[]', SO NO fn, AND THE LOOP WILL NOT EXECUTE. BUT BECAUSE Vehicle.__init__ DID REGISTER THE WILDCARD OBSERVER W/ @self.on_attribute('*'), THEN THE 2ND FOR-LOOP WILL FIND THE WILDCARD AND SIMPLY ADD THE 'rangefinder' NAME TO THE _ready_attrs VIA THE LISTENER. 
+
+        # Notify observers. If the attribute has no observers, then return an empty list
         for fn in self._attribute_listeners.get(attr_name, []):
-            try:
+            try: # The key was found, so run its corresponding callbacks.
                 fn(self, attr_name, value)
             except Exception:
                 self._logger.exception('Exception in attribute handler for %s' % attr_name, exc_info=True)
 
+        # Grab the wildcard observer created in Vehicle.__init__, and run the call back, which is to add the attribute 'name' to _ready_attrs.  
         for fn in self._attribute_listeners.get('*', []):
             try:
                 fn(self, attr_name, value)
@@ -1161,6 +1169,7 @@ class Locations(HasObservers):
             (self._lat, self._lon) = ((m.lat / 1.0e7), (m.lon / 1.0e7))
             self._relative_alt = (m.relative_alt / 1000.0)
 
+            # NOTE: WHY IS BOTH SELF AND VEHICLE CALLING THE F(X) INDIVIDUALLY??? THIS SEEMS LIKE CODE DUPLICATION AND REDUNDANT IF NOT NEEDED...
             self.notify_attribute_listeners(
                 attr_name='global_relative_frame', 
                 value=self.global_relative_frame
@@ -1363,6 +1372,8 @@ class Vehicle(HasObservers):
         # Attaches message listeners.
         self._message_listeners: dict[str, list[Callable]] = dict()
 
+
+        # NOTE: WHAT DOES THIS LISTENER DO???
         @handler.forward_message
         def listener(_, msg: Any) -> None:
             self.notify_message_listeners(msg.get_type(), msg)
@@ -1440,11 +1451,20 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('groundspeed', self.groundspeed)
 
 
-        # NOTE: HERE WE SEE HOW THE OBSERVERS ARE UTILIZED. AN OBSERVER CALLED LISTENER IS CREATED AFTER A RANGEFINDER MESSAGE COMES IN, AND IT JUST UPDATES THE RANGEFINDER MEMBER COMPONENTS. NOTICE HOW THE ADD_ATTRIBUTE_LISTENERS WAS NEVER POPULATED OR CALLED, ONLY NOTIFY IS CALLED. ∴ THIS IS SETUP AS AN INITIALIZER, SO IT SETS OUR VALUES AND MEMBERS ONCE, AND THATS IT. NOW, IF YOU WANT IT TO KEEP REPORTING THE RANGEFINDER VALUES, YOU HAVE TO CREATE AND ADD YOUR OWN!!
+        # NOTE: HERE WE SEE HOW THE OBSERVERS ARE UTILIZED. WE HAVE A MESSAGE OBSERVER AND A CALLBACK CALLED 'listener' THAT IS CALLED AFTER A RANGEFINDER MESSAGE COMES IN, AND IT JUST UPDATES THE RANGEFINDER PRIVATE MEMBER COMPONENTS EVERY TIME A NEW MSG COMES. NOTICE HOW THE ADD_ATTRIBUTE_LISTENERS WAS NEVER POPULATED OR CALLED, ONLY NOTIFY IS CALLED. ∴ THIS IS SETUP AS AN INITIALIZER, SO IT SETS OUR VALUES AND MEMBERS ONCE, AND THATS IT. NOW, IF YOU WANT IT TO KEEP REPORTING THE RANGEFINDER VALUES, YOU HAVE TO CREATE AND ADD YOUR OWN!!
         
         # NOTE: ARE THESE PRIVATE VARIABLES STORED OR THROWN AWAY? IF THE FORMER, THEN DONT WE ALWAYS KEEP TWO COPIES OF EVERYTHING, SINCE WE HAVE THE ONES HERE, AND THEN THE ONES IN THE CORRESPONDING CLASS?? 
+
+        """
+        Ask: 
+        So that new rangefinder class object is always destroyed when the notify method goes out of scope correct? Or is the new object stored within _attribute_listeners, with an empty list, upon the .get() search?
+
+        Cant I make an ACK message observer aswell? 
+
+        What is the scope of the update attribute created by the notify method below?
+        """
          
-        # Rangefinder attribute
+        # Rangefinder publisher
         self._rngfnd_distance: float | None = None
         self._rngfnd_voltage: float | None = None
 
@@ -1452,8 +1472,10 @@ class Vehicle(HasObservers):
         def listener(self, name: str, m: Any) -> None:
             self._rngfnd_distance = m.distance
             self._rngfnd_voltage = m.voltage
-            # NOTE: NOTIFY THE RANGEFINDER CLASS OF OUR INIT READ.
-            self.notify_attribute_listeners('rangefinder', self.rangefinder)
+            # NOTE: IF THE LISTENER GETS PASSED THE ATTRB NAME, THEN SHOULDNT WE PASS IT INTO THE NOTIFY METHOD? OR IS THE NOTIFY METHOD THE FIRST TIME THE NAME STRING IS SEEN?
+            # HERE, THE LISTENERS VAR name = 'RANGEFINDER', SO WE WOULD HAVE TO USE THE to_lower() METHOD.
+            # Build a Rangefinder() class object and pass it to the notify method.
+            self.notify_attribute_listeners('rangefinder', self.rangefinder) 
 
 
         # Mount (e.g., cam gimbal or antenna tracker) attribute
@@ -1817,17 +1839,14 @@ class Vehicle(HasObservers):
 
         ---
 
-        💡
-        #### TIP:
+        #### 💡 TIP:
 
-            This is the most elegant way to define message listener callback functions.
-            Use `add_message_listener` if, and only if, you need to be able to
-            remove the listener (e.g., `remove_message_listener`) later.
+        This is the most elegant way to define message listener callback functions.
+        Use `add_message_listener` if, and only if, you need to be able to remove the listener (e.g., `remove_message_listener`) later.
 
         ---
 
-        A decorated message listener function is called with three arguments every time the
-        specified message is received:
+        A decorated message listener function is called with three arguments every time the specified message is received:
 
         * `self` - the current vehicle.
         * `name` - the name of the message that was intercepted.
@@ -1864,16 +1883,14 @@ class Vehicle(HasObservers):
 
     def add_message_listener(self, name: str, fn: Callable) -> None:
         """
-        ### Adds a message listener function that will be called every time the specified message is received.
+        ### ⚙️ Adds a message listener function that will be called every time the specified message is received.
 
         ---
 
-        💡
-        #### TIP:
+        #### 💡 TIP:
 
-            We recommend you use `on_message` instead of this method as it has a more elegant syntax.
-            This method is only preferred if you need to be able to
-            remove the listener (e.g., `remove_message_listener`).
+        We recommend you use `on_message` instead of this method as it has a more elegant syntax.
+        This method is only preferred if you need to be able to remove the listener (e.g., `remove_message_listener`).
 
         ---
 
@@ -1936,7 +1953,7 @@ class Vehicle(HasObservers):
 
     def notify_message_listeners(self, name: str, msg: Any) -> None:
         """
-        ### Notify all registered message listeners.
+        ### ⚙️ Notify all registered message listeners.
 
         ---
 
@@ -2162,6 +2179,7 @@ class Vehicle(HasObservers):
     # battery
 
 
+    # Publish the attribute update notification
     @property
     def rangefinder(self) -> Rangefinder:
         """

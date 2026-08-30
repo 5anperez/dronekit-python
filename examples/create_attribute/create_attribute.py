@@ -6,27 +6,29 @@
 
 create_attribute.py:
 
-Demonstrates how to create attributes from MAVLink messages within your DroneKit-Python script 
-and use them in the same way as the built-in Vehicle attributes.
+Demonstrates how to create attributes from MAVLink messages within your DroneKit-Python script and use them in the same way as the built-in Vehicle attributes.
 
-The code adds a new attribute to the Vehicle class, populating it with information from RAW_IMU messages 
-intercepted using the message_listener decorator.
+The code adds a new attribute to the Vehicle class, populating it with information from RAW_IMU messages intercepted using the message_listener decorator.
 
 Full documentation is provided at http://python.dronekit.io/examples/create_attribute.html
 """
 from __future__ import print_function
 
 from dronekit import connect, Vehicle
-from my_vehicle import MyVehicle #Our custom vehicle class
+from my_vehicle import MyVehicle # Our custom vehicle class
 import time
 
 
 
-#Set up option parsing to get connection string
+# Set up option parsing to get connection string
 import argparse  
-parser = argparse.ArgumentParser(description='Demonstrates how to create attributes from MAVLink messages. ')
-parser.add_argument('--connect', 
-                   help="Vehicle connection target string. If not specified, SITL automatically started and used.")
+parser = argparse.ArgumentParser(
+    description='Demonstrates how to create attributes from MAVLink messages.'
+)
+parser.add_argument(
+    '--connect', 
+    help="Vehicle connection target string. If not specified, SITL automatically started and used."
+)
 args = parser.parse_args()
 
 connection_string = args.connect
@@ -45,7 +47,7 @@ print('Connecting to vehicle on: %s' % connection_string)
 vehicle = connect(connection_string, wait_ready=True, vehicle_class=MyVehicle)
 
 # Add observer for the custom attribute
-
+# I.e., subscribe to the raw_imu publisher
 def raw_imu_callback(self, attr_name, value):
     # attr_name == 'raw_imu'
     # value == vehicle.raw_imu

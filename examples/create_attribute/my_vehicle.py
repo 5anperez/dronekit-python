@@ -7,6 +7,12 @@
 my_vehicle.py:
 
 Custom Vehicle subclass to add IMU data.
+
+1. Since all data is in MAVLink message form, you always NEED a message listener as a first step, which intercepts the messages. Then, with the intercepted message data, you unpack and update attributes and/or anything else you want observers to do. This is what I call creating the data publisher, bc it publishes the mavlink message data in a way that DK can work with.
+
+2. Thats assuming you've created a class to represent the attribute, if the DK vehicle class hasnt already (e.g., Rangefinder() class and the Battery() class), like done below w/ the RawIMU. Once thats done, you create the publisher of data, which is the on_message() + notify_attribute_listeners() combo.
+
+3. Then you can subscribe to that publisher by creating an observer, which is the callback() + add_attribute_listener() combo. E.g., this is done in the 'create_attribute.py' code.  
 """
 
 from dronekit import Vehicle
@@ -83,8 +89,9 @@ class MyVehicle(Vehicle):
             # Notify all observers of new message (with new value)
             #   Note that argument `cache=False` by default so listeners
             #   are updated with every new message
-            self.notify_attribute_listeners('raw_imu', self._raw_imu) 
+            self.notify_attribute_listeners('raw_imu', self._raw_imu) # I THINK THIS HAS ONE TOO MANY UNDERSCORES... IT SHOULD CALL THE raw_imu INSTEAD! 
 
+    # This is like a publisher for the attribute update
     @property
     def raw_imu(self):
         return self._raw_imu
