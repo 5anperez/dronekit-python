@@ -22,9 +22,13 @@ import math
 
 # Set up option parsing to get connection string
 import argparse
-parser = argparse.ArgumentParser(description='Control Copter and send commands in GUIDED mode ')
-parser.add_argument('--connect',
-                   help="Vehicle connection target string. If not specified, SITL automatically started and used.")
+parser = argparse.ArgumentParser(
+    description='Control Copter and send commands in GUIDED mode '
+)
+parser.add_argument(
+    '--connect',
+    help="Vehicle connection target string. If not specified, SITL automatically started and used."
+)
 args = parser.parse_args()
 
 connection_string = args.connect
@@ -84,6 +88,9 @@ def arm_and_takeoff_nogps(aTargetAltitude):
         set_attitude(thrust = thrust)
         time.sleep(0.2)
 
+
+
+
 def send_attitude_target(roll_angle = 0.0, pitch_angle = 0.0,
                          yaw_angle = None, yaw_rate = 0.0, use_yaw_rate = False,
                          thrust = 0.5):
@@ -112,6 +119,8 @@ def send_attitude_target(roll_angle = 0.0, pitch_angle = 0.0,
         thrust  # Thrust
     )
     vehicle.send_mavlink(msg)
+
+
 
 def set_attitude(roll_angle = 0.0, pitch_angle = 0.0,
                  yaw_angle = None, yaw_rate = 0.0, use_yaw_rate = False,

@@ -128,12 +128,12 @@ while not vehicle.is_armable:
     # If required, you can provide additional information about initialisation
     # using `vehicle.gps_0.fix_type` and `vehicle.mode.name`.
     
-#print "\nSet Vehicle.armed=True (currently: %s)" % vehicle.armed 
-#vehicle.armed = True
-#while not vehicle.armed:
-#    print " Waiting for arming..."
-#    time.sleep(1)
-#print " Vehicle is armed: %s" % vehicle.armed 
+print("\nSet Vehicle.armed=True (currently: %s)" % vehicle.armed) 
+vehicle.armed = True
+while not vehicle.armed:
+   print(" Waiting for arming...")
+   time.sleep(1)
+print(" Vehicle is armed: %s" % vehicle.armed) 
 
 
 # Add and remove and attribute callbacks
@@ -234,6 +234,7 @@ for x in range(1,5):
     if vehicle.parameters['THR_MIN']==20:
         break
     time.sleep(1)
+    print(f" {x} sec") # count the secs it takes
 
 
 #Callback function for "any" parameter

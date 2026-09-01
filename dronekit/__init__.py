@@ -22,6 +22,34 @@ then the `Vehicle.simple_takeoff` method and/or the `Vehicle.simple_goto` method
 - It is also possible to work with vehicle missions when in `AUTO` flight mode by using the `Vehicle.commands` attribute.
 
 - All the logging is handled through the builtin Python `logging` module.
+
+---
+
+#### Important Terminology:
+1. MAVLink message: Decoded protocol data received from ArduPilot
+2. Message listener: Callback that receives a raw MAVLink message
+3. Vehicle attribute: Higher-level DroneKit representation, such as `vehicle.rangefinder`
+4. Attribute observer/listener: Callback that receives a published attribute value
+5. Notification: Synchronous execution of registered callbacks
+6. HasOservers: The registry and dispatcher for attribute callbacks
+
+NOTE: listener ≡ observer, which are essentailly callbacks.
+
+---
+
+* When a vehicle is created, the following dictionaries are created to store all callbacks:
+
+// When populated w/ two rangefinder callbacks and one mode callback
+self._attribute_listeners = {
+    "rangefinder": [callback1, callback2],
+    "mode": [callback3],
+}
+
+// When populated w/ one rangefinder MAVLink message and callback
+self._message_listeners = {
+    "RANGEFINDER": [rangefinder_message_callback],
+    # Other message types...
+}
 """
 from collections.abc import MutableMapping, Callable, Iterator
 import copy
@@ -30,7 +58,7 @@ import math
 import struct
 import time
 import monotonic
-from typing import Any
+from typing import Any, Callable
 from dataclasses import dataclass, field
 
 from pymavlink import mavutil, mavwp
@@ -842,15 +870,14 @@ class HasObservers:
         if cache:
             if self._attribute_cache.get(attr_name) == value:
                 return
-            # O/w, if changed, update
+            # O/w, if changed, update and store
             self._attribute_cache[attr_name] = value
-
-        # NOTE: ON BOOT UP, WHEN THE VERY FIRST RANGEFINDER MSG COMES IN AND THE NOTIFY METHOD IS CALLED WITH THE RANGEFINDER OBJECT AS value, THEN THE .get METHOD BELOW WILL NOT FIND THE rangefinder ATTR_NAME KEY, SO SINCE THE KEY IS MISSING, THE EMPTY LIST OF CALLBACKS WILL BE RETURNED '[]', SO NO fn, AND THE LOOP WILL NOT EXECUTE. BUT BECAUSE Vehicle.__init__ DID REGISTER THE WILDCARD OBSERVER W/ @self.on_attribute('*'), THEN THE 2ND FOR-LOOP WILL FIND THE WILDCARD AND SIMPLY ADD THE 'rangefinder' NAME TO THE _ready_attrs VIA THE LISTENER. 
 
         # Notify observers. If the attribute has no observers, then return an empty list
         for fn in self._attribute_listeners.get(attr_name, []):
             try: # The key was found, so run its corresponding callbacks.
-                fn(self, attr_name, value)
+                # your observer receives an attr object here, e.g., Rangefinder() class object via the vehicle.rangefinder() attribute publisher.
+                fn(self, attr_name, value) 
             except Exception:
                 self._logger.exception('Exception in attribute handler for %s' % attr_name, exc_info=True)
 
@@ -1360,7 +1387,7 @@ class Vehicle(HasObservers):
 
         # Cache all updated attributes for wait_ready.
         # By default, we presume all "commands" are loaded.
-        self._ready_attrs: set[str] = {'commands'}
+        self._ready_attrs: set[str] = {'commands'} # these attribute have been seen @least once. 
 
         # Default parameters when calling wait_ready() or wait_ready(True).
         self._default_ready_attrs = ['parameters', 'gps_0', 'armed', 'mode', 'attitude']
@@ -1369,13 +1396,11 @@ class Vehicle(HasObservers):
         def listener(_, name: str, value: Any) -> None:
             self._ready_attrs.add(name)
 
-        # Attaches message listeners.
-        self._message_listeners: dict[str, list[Callable]] = dict()
-
-
-        # NOTE: WHAT DOES THIS LISTENER DO???
+        # Create the message-listener registry
+        self._message_listeners: dict[str, list[Callable]] = dict[str, list[Callable[..., Any]]]()
+        # Then connect the communication handler to the vehicle: MAVConnection -> Vehicle
         @handler.forward_message
-        def listener(_, msg: Any) -> None:
+        def listener(_, msg: Any) -> None: # Every MAVLink message passes thru this callback
             self.notify_message_listeners(msg.get_type(), msg)
 
 
@@ -1405,17 +1430,26 @@ class Vehicle(HasObservers):
             self.notify_attribute_listeners('wind', self.wind)
 
 
+# NOTE: WHY IS A LOCATION OBJECT CREATED HERE, BUT NO OTHER CLASS OBJECTS ARE CREATED HERE?
+
         # Location attribute
         self._location = Locations(self)
         self._vx: float | None = None
         self._vy: float | None = None
         self._vz: float | None = None
 
+        # MAVLink message observer and callback/listener
         @self.on_message('GLOBAL_POSITION_INT')
         def listener(self, name: str, m: Any) -> None:
-            (self._vx, self._vy, self._vz) = (m.vx / 100.0, m.vy / 100.0, m.vz / 100.0)
+            (self._vx, self._vy, self._vz) = (
+                (m.vx / 100.0), 
+                (m.vy / 100.0), 
+                (m.vz / 100.0)
+            )
+            # Publish the update
             self.notify_attribute_listeners('velocity', self.velocity)
 
+# NOTE: WHATS THE RELATIONSHIP BETWEEN THE ATTITUDE._YAW VAR AND THE VFR._HEADING VAR?? IN THE vehicle_state SCRIPT, THEY ARE BOTH POLLED, BUT THEY RETURN DIFFERENT VALUES, WHY IS THAT? E.G., ATTITUDE._YAW = -0.0950401 AND VFR._HEADING = 354!?
 
         # Attitude attribute
         self._pitch: float | None = None
@@ -1450,31 +1484,24 @@ class Vehicle(HasObservers):
             self._groundspeed = m.groundspeed
             self.notify_attribute_listeners('groundspeed', self.groundspeed)
 
-
-        # NOTE: HERE WE SEE HOW THE OBSERVERS ARE UTILIZED. WE HAVE A MESSAGE OBSERVER AND A CALLBACK CALLED 'listener' THAT IS CALLED AFTER A RANGEFINDER MESSAGE COMES IN, AND IT JUST UPDATES THE RANGEFINDER PRIVATE MEMBER COMPONENTS EVERY TIME A NEW MSG COMES. NOTICE HOW THE ADD_ATTRIBUTE_LISTENERS WAS NEVER POPULATED OR CALLED, ONLY NOTIFY IS CALLED. ∴ THIS IS SETUP AS AN INITIALIZER, SO IT SETS OUR VALUES AND MEMBERS ONCE, AND THATS IT. NOW, IF YOU WANT IT TO KEEP REPORTING THE RANGEFINDER VALUES, YOU HAVE TO CREATE AND ADD YOUR OWN!!
-        
-        # NOTE: ARE THESE PRIVATE VARIABLES STORED OR THROWN AWAY? IF THE FORMER, THEN DONT WE ALWAYS KEEP TWO COPIES OF EVERYTHING, SINCE WE HAVE THE ONES HERE, AND THEN THE ONES IN THE CORRESPONDING CLASS?? 
-
         """
         Ask: 
-        So that new rangefinder class object is always destroyed when the notify method goes out of scope correct? Or is the new object stored within _attribute_listeners, with an empty list, upon the .get() search?
 
-        Cant I make an ACK message observer aswell? 
-
-        What is the scope of the update attribute created by the notify method below?
+        Why arent we using the rangefinder class here?
+        Instead of creating the two private members here, why not create a rangefinder object, using the class, this way the notify attribute method 
         """
          
-        # Rangefinder publisher
+        # Rangefinder private members
         self._rngfnd_distance: float | None = None
         self._rngfnd_voltage: float | None = None
 
+        # Register the rangefinder msg publisher
+        # Rangefinder message publisher: The message listener intercepts MAVLink messages for rangefinder data and updates the private members with the data, then calls the attribute notification method, which calls the attribute publisher 'rangefinder()'.
         @self.on_message('RANGEFINDER')
         def listener(self, name: str, m: Any) -> None:
             self._rngfnd_distance = m.distance
             self._rngfnd_voltage = m.voltage
-            # NOTE: IF THE LISTENER GETS PASSED THE ATTRB NAME, THEN SHOULDNT WE PASS IT INTO THE NOTIFY METHOD? OR IS THE NOTIFY METHOD THE FIRST TIME THE NAME STRING IS SEEN?
-            # HERE, THE LISTENERS VAR name = 'RANGEFINDER', SO WE WOULD HAVE TO USE THE to_lower() METHOD.
-            # Build a Rangefinder() class object and pass it to the notify method.
+            # Build a Rangefinder() class object and pass it to the notify method, which represents the attribute publishing.
             self.notify_attribute_listeners('rangefinder', self.rangefinder) 
 
 
@@ -2109,19 +2136,16 @@ class Vehicle(HasObservers):
 
         ---
 
-        📝
-        #### NOTE:
+        #### 📝 NOTE:
 
-            All the location "values" (e.g. `global_frame.lat`) are initially
-            created with value `None`. The `global_frame`, `global_relative_frame`
-            latitude and longitude values are populated shortly after initialisation but
-            `global_frame.alt` may take a few seconds longer to be updated.
-            The `local_frame` does not populate until the vehicle is armed.
+        All the location "values" (e.g. `global_frame.lat`) are initially
+        created with value = `None`. The `global_frame`, `global_relative_frame`
+        latitude and longitude values are populated shortly after initialization but `global_frame.alt` may take a few seconds longer to be updated.
+        The `local_frame` does not populate until the vehicle is armed.
 
         ---
 
-        The attribute and its members are observable. To watch for changes in all frames using a listener
-        created using a decorator (you can also define a listener and explicitly add it).
+        The attribute and its members are observable. To watch for changes in all frames using a listener created using a decorator (you can also define a listener and explicitly add it).
 
         ```python
             @vehicle.on_attribute('location')
@@ -2139,10 +2163,10 @@ class Vehicle(HasObservers):
         ```python
             @vehicle.on_attribute(attr_name='location.global_frame')
             def listener(self, attr_name: str, value: Any) -> None:
-            # `self`: `Locations` object that has been updated.
-            # `attr_name`: name of the observed attribute - 'global_frame'
-            # `value` is the updated attribute value.
-            print(f" Global: {value}")
+                # `self`: `Locations` object that has been updated.
+                # `attr_name`: name of the observed attribute - 'global_frame'
+                # `value` is the updated attribute value.
+                print(f" Global: {value}")
 
             # Or watch using decorator: 
             @vehicle.location.on_attribute(attr_name='global_frame')
@@ -3299,27 +3323,17 @@ class Gimbal(object):
     """
     ### Gimbal status and control.
 
-    An object of this type is returned by `Vehicle.gimbal`. The
-    gimbal orientation can be obtained from its `roll`, `pitch` and
-    `yaw` attributes.
+    An object of this type is returned by `Vehicle.gimbal`. The gimbal orientation can be obtained from its `roll`, `pitch` and `yaw` attributes.
 
-    The gimbal orientation can be set explicitly using `rotate`
-    or you can set the gimbal (and vehicle) to track a specific "region of interest" using
-    `target_location`.
+    The gimbal orientation can be set explicitly using `rotate` or you can set the gimbal (and vehicle) to track a specific "region of interest" using `target_location`.
 
     ---
 
-    📝
-    #### NOTE:
+    #### 📝 NOTE:
 
-        * The orientation attributes are created with values of `None`. If a gimbal is present,
-          the attributes are populated shortly after initialisation by messages from the autopilot.
-        * The attribute values reflect the last gimbal setting-values rather than actual measured values.
-          This means that the values won't change if you manually move the gimbal, and that the value
-          will change when you set it, even if the specified orientation is not supported.
-        * A gimbal may not support all axes of rotation. For example, the Solo gimbal will set pitch
-          values from 0 to -90 (straight ahead to straight down), it will rotate the vehicle to follow specified
-          yaw values, and will ignore roll commands (not supported).
+    * The orientation attributes are created with values of `None`. If a gimbal is present, the attributes are populated shortly after initialization by messages from the autopilot.
+    * The attribute values reflect the last gimbal setting-values rather than actual measured values. This means that the values won't change if you manually move the gimbal, and that the value will change when you set it, even if the specified orientation is not supported.
+    * A gimbal may not support all axes of rotation. For example, the Solo gimbal will set pitch values from 0 to -90 (straight ahead to straight down), it will rotate the vehicle to follow specified yaw values, and will ignore roll commands (not supported).
 
     ---
     """
@@ -3672,12 +3686,9 @@ class Parameters(MutableMapping, HasObservers):
 
         ---
 
-        📝
-        #### NOTE:
+        #### 📝 NOTE:
 
-            The `on_attribute` decorator performs the same operation as this method, but with
-            a more elegant syntax. Use `add_attribute_listener` only if you will need to remove
-            the observer.
+        The `on_attribute` decorator performs the same operation as this method, but with a more elegant syntax. Use `add_attribute_listener` only if you will need to remove the observer.
 
         ---
 
