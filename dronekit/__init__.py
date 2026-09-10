@@ -1,5 +1,5 @@
 """
-### This is the API Reference for the DroneKit-Python API.
+### Reference for the DroneKit-Python API.
 
 The main API is the `Vehicle` class. The code snippet below shows how to use `connect` to obtain an instance of a connected vehicle:
 
@@ -14,8 +14,7 @@ The main API is the `Vehicle` class. The code snippet below shows how to use `co
 
 - Asynchronous notification on vehicle attribute changes is available by registering listeners/observers.
 
-- Vehicle movement is primarily controlled using the `Vehicle.armed` attribute and
-then the `Vehicle.simple_takeoff` method and/or the `Vehicle.simple_goto` method. Note that the vehicle must be in the `GUIDED` flight mode to use these methods.
+- Vehicle movement is primarily controlled using the `Vehicle.armed` attribute and then the `Vehicle.simple_takeoff` method and/or the `Vehicle.simple_goto` method. Note that the vehicle must be in the `GUIDED` flight mode to use these methods.
 
 - Velocity-based movement and control over other vehicle features can be achieved using custom MAVLink messages wrapped in methods such as `Vehicle.send_mavlink` and/or `Vehicle.message_factory`.
 
@@ -36,6 +35,8 @@ then the `Vehicle.simple_takeoff` method and/or the `Vehicle.simple_goto` method
 NOTE: listener ≡ observer, which are essentailly callbacks.
 
 ---
+
+#### EXAMPLE: 
 
 * When a vehicle is created, the following dictionaries are created to store all callbacks:
 
@@ -754,6 +755,7 @@ class HasObservers:
 
     # Member methods
     def __init__(self) -> None:
+        #NOTE: THIS GUY IS FLOATING, DOES HE DO ANYTHING?
         logging.basicConfig()
         self._logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -986,7 +988,7 @@ class ChannelsOverride(dict):
         # This is ArduPilot's channels numerical values 1-8
         if not (0 < int(key) <= self._count):
             raise KeyError('Invalid channel index %s' % key)
-        if not value:
+        if not value: # WOULD THIS BE A ZERO OR 'NONE'? OR BOTH?
             try:
                 dict.__delitem__(self, str(key))
             except:
