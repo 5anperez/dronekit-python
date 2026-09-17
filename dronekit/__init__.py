@@ -3012,6 +3012,7 @@ class Vehicle(HasObservers):
 
         ---
         """
+        # Start the threads: mavlink_thread_in & mavlink_thread_out
         self._handler.start()
 
         # Start heartbeat polling.
@@ -3101,9 +3102,7 @@ class Vehicle(HasObservers):
         """
         ### Waits for specified attributes to be populated from the vehicle (values are initially `None`).
 
-        This is typically called "behind the scenes" to ensure that `connect` does not return until
-        attributes have populated (via the `wait_ready` parameter). You can also use it after connecting to
-        wait on a specific value(s).
+        This is typically called "behind the scenes" to ensure that `connect` does not return until attributes have populated (via the `wait_ready` parameter). You can also use it after connecting to wait on a specific value(s).
 
         There are two ways to call the method:
 
@@ -3115,12 +3114,9 @@ class Vehicle(HasObservers):
             vehicle.wait_ready('mode','airspeed')
         ```
 
-        Using the `wait_ready(True)` waits on `parameters`, `gps_0`,
-        `armed`, `mode`, and `attitude`. In practice this usually
-        means that all supported attributes will be populated.
+        Using the `wait_ready(True)` waits on `parameters`, `gps_0`, `armed`, `mode`, and `attitude`. In practice this usually means that all supported attributes will be populated.
 
-        By default, the method will timeout after 30 seconds and raise an exception if the
-        attributes were not populated.
+        By default, the method will timeout after 30 seconds and raise an exception if the attributes were not populated.
 
         ---
 
