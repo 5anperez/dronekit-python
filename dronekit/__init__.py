@@ -74,7 +74,7 @@ from dronekit.util import ErrprinterHandler
 TODO:
 - ARE YOU SURE THAT THE TYPE HINTS ARE CORRECT? E.G., FOR THE BATTERY CLASS, ARE VOLTS AND CURRENT REALLY INTS?
 - CREATE AN ENUM CLASS OR MAP FOR THE ATTRIBUTE, PROPERTY, AND PARAMETER NAMES, E.G., 'RANGEFINDER' = 0, ATTITUDE = 1, ETC.
-- 
+- MAKE PRIVATE MEMBERS IMMUTABLE FROZEN MEMBERS TO OMIT REDUNDANT DUPLICATES LIKE _distance AND rangefinder.distance
 """
 
 
@@ -755,7 +755,7 @@ class HasObservers:
 
     # Member methods
     def __init__(self) -> None:
-        #NOTE: THIS GUY IS FLOATING, DOES HE DO ANYTHING?
+        # Logs exceptions
         logging.basicConfig()
         self._logger: logging.Logger = logging.getLogger(name=__name__)
 
@@ -1366,10 +1366,10 @@ class Vehicle(HasObservers):
     def __init__(self, handler: Any) -> None:
         super(Vehicle, self).__init__()
 
-        # Logger for DroneKit
+        # Logger for DroneKit: logs warnings, info, and exceptions
         self._logger = logging.getLogger(__name__)
         
-        # Logger for the autopilot messages
+        # Logger for the autopilot messages: logs status text messages
         self._autopilot_logger = logging.getLogger('autopilot')
 
         # MAVLink-to-logging-module log severity mappings
@@ -3566,6 +3566,7 @@ class Parameters(MutableMapping, HasObservers):
 
     def __init__(self, vehicle: 'Vehicle') -> None:
         super(Parameters, self).__init__()
+        # Logs errors
         self._logger = logging.getLogger(__name__)
         self._vehicle = vehicle
     # __init__
