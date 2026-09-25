@@ -1486,6 +1486,30 @@ class Vehicle(HasObservers):
             self._groundspeed = m.groundspeed
             self.notify_attribute_listeners('groundspeed', self.groundspeed)
 
+
+
+        # AHRS2 Filter's yaw report in rads
+        self._ahrs2_yaw: float | None = None
+
+        @self.on_message('AHRS2')
+        def listener(self, name: str, m: Any) -> None:
+            self._ahrs2_yaw = m.yaw
+            self.notify_attribute_listeners('ahrs2_yaw', self.ahrs2_yaw)
+
+
+
+
+        # The state of the navigation and position controller.
+        self._nav_bearing: int | None = None
+
+        @self.on_message('NAV_CONTROLLER_OUTPUT')
+        def listener(self, name: str, m: Any) -> None:
+            self._nav_bearing = m.nav_bearing
+            self.notify_attribute_listeners('nav_controller_bearing', self.nav_controller_bearing)
+
+
+
+
         """
         Ask: 
 
@@ -2352,6 +2376,26 @@ class Vehicle(HasObservers):
         """
         return self._heading
     # heading
+
+
+
+    @property
+    def ahrs2_yaw(self) -> float | None:
+        """
+        ### AHRS2 Filter's version of yaw in rads
+        """
+        return self._ahrs2_yaw
+    # ahrs2_yaw
+
+
+
+    @property
+    def nav_controller_bearing(self) -> int | None:
+        """
+        ### The state of the navigation and position controller: yaw in degrees.
+        """
+        return self._nav_bearing
+    # nav_controller_bearing
 
 
     @property
